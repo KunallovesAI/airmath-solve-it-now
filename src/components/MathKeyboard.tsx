@@ -1,8 +1,7 @@
 
-import React, { useState } from 'react';
+import React from 'react';
 import { Button } from '@/components/ui/button';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import { toast } from 'sonner';
 
 interface MathKeyboardProps {
   onInput: (value: string) => void;
@@ -11,30 +10,25 @@ interface MathKeyboardProps {
 }
 
 const MathKeyboard: React.FC<MathKeyboardProps> = ({ onInput, onBackspace, onClear }) => {
-  const [activeTab, setActiveTab] = useState('basic');
+  const [activeTab, setActiveTab] = React.useState('basic');
 
-  // Define keyboard layouts
+  // Define keyboard layouts - simplified and fixed
   const basicKeys = [
     ['1', '2', '3', '+', '('],
     ['4', '5', '6', '-', ')'],
-    ['7', '8', '9', '×', '='],
-    ['0', '.', '^', '÷', '√']
+    ['7', '8', '9', '*', '='],
+    ['0', '.', '^', '/', 'x']
   ];
 
   const advancedKeys = [
-    ['π', 'θ', 'α', '∞', '∫'],
-    ['sin', 'cos', 'tan', 'log', 'ln'],
-    ['!', '|x|', '\\frac{}{}', '\\sqrt{}', '\\sum'],
-    ['lim', '\\vec{}', '\\overrightarrow{}', '\\int_{}^{}', '≈']
+    ['\\pi', '\\theta', '\\alpha', '\\infty', '\\int'],
+    ['\\sin', '\\cos', '\\tan', '\\log', '\\ln'],
+    ['!', '|', '\\frac', '\\sqrt', '\\sum'],
+    ['\\lim', '\\vec', '\\overrightarrow', '\\int', '\\approx']
   ];
 
   // CSS classes for keyboard buttons
   const buttonClass = 'h-12 text-center flex items-center justify-center';
-
-  // Handle button click
-  const handleButtonClick = (value: string) => {
-    onInput(value);
-  };
 
   return (
     <div className="math-keyboard mt-4 border rounded-lg overflow-hidden">
@@ -52,7 +46,7 @@ const MathKeyboard: React.FC<MathKeyboardProps> = ({ onInput, onBackspace, onCle
                   <Button 
                     variant="outline" 
                     className={buttonClass} 
-                    onClick={() => handleButtonClick(key)}
+                    onClick={() => onInput(key)}
                   >
                     {key}
                   </Button>
@@ -69,7 +63,7 @@ const MathKeyboard: React.FC<MathKeyboardProps> = ({ onInput, onBackspace, onCle
                 <Button 
                   variant="outline" 
                   className={buttonClass} 
-                  onClick={() => handleButtonClick(key)}
+                  onClick={() => onInput(key)}
                 >
                   {key}
                 </Button>

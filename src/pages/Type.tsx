@@ -1,5 +1,5 @@
 
-import { useState, useEffect } from 'react';
+import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import Layout from '@/components/Layout';
 import { Card, CardHeader, CardTitle, CardContent, CardFooter } from '@/components/ui/card';
@@ -14,12 +14,13 @@ const Type = () => {
   const [equation, setEquation] = useState("");
   
   const handleInput = (value: string) => {
+    // Direct input without adding extra $ symbols
     setEquation((prev) => {
-      // Handle special cases for some LaTeX commands
-      if (value === "\\sqrt{}") {
+      // Special handling for commands that need brackets
+      if (value === "\\sqrt") {
         return prev + "\\sqrt{}";
       }
-      if (value === "\\frac{}{}") {
+      if (value === "\\frac") {
         return prev + "\\frac{}{}";
       }
       return prev + value;
@@ -60,7 +61,7 @@ const Type = () => {
           </CardHeader>
           <CardContent>
             {equation ? (
-              <LatexRenderer latex={equation} />
+              <LatexRenderer latex={equation} displayMode={true} />
             ) : (
               <div className="h-16 flex items-center justify-center border rounded-lg bg-muted/20">
                 <p className="text-muted-foreground">Your equation will appear here</p>
