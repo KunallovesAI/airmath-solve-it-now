@@ -7,6 +7,15 @@ import { Button } from '@/components/ui/button';
 import { Camera, FlipHorizontal, Lightbulb, ArrowLeft } from 'lucide-react';
 import { toast } from "sonner";
 
+// Define extended interfaces for torch capability
+interface ExtendedMediaTrackCapabilities extends MediaTrackCapabilities {
+  torch?: boolean;
+}
+
+interface ExtendedConstraintSet extends MediaTrackConstraintSet {
+  advanced?: { torch?: boolean }[];
+}
+
 const Scan = () => {
   const navigate = useNavigate();
   const [isScanning, setIsScanning] = useState(false);
@@ -50,7 +59,7 @@ const Scan = () => {
         
         // Check if flash is available
         const track = stream.getVideoTracks()[0];
-        const capabilities = track.getCapabilities ? track.getCapabilities() : {};
+        const capabilities = track.getCapabilities ? track.getCapabilities() as ExtendedMediaTrackCapabilities : {};
         setHasFlash(capabilities.torch || false);
       }
     } catch (error) {
@@ -67,10 +76,15 @@ const Scan = () => {
       const stream = videoRef.current.srcObject as MediaStream;
       const track = stream.getVideoTracks()[0];
       
-      if ('torch' in track.getCapabilities()) {
-        await track.applyConstraints({
+      // Use the extended interface with type assertion
+      const capabilities = track.getCapabilities() as ExtendedMediaTrackCapabilities;
+      
+      if (capabilities && 'torch' in capabilities) {
+        const constraints: ExtendedConstraintSet = {
           advanced: [{ torch: !flashOn }]
-        });
+        };
+        
+        await track.applyConstraints(constraints as MediaTrackConstraints);
         setFlashOn(!flashOn);
         toast.info(flashOn ? "Flash turned off" : "Flash turned on");
       } else {
