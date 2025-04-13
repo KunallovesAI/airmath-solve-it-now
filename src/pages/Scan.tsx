@@ -6,6 +6,7 @@ import { Card } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Camera, FlipHorizontal, Lightbulb, ArrowLeft } from 'lucide-react';
 import { toast } from "sonner";
+import { extractTextFromImage } from '@/utils/visionApi';
 
 // Define extended interfaces for torch capability
 interface ExtendedMediaTrackCapabilities extends MediaTrackCapabilities {
@@ -22,6 +23,7 @@ const Scan = () => {
   const [hasFlash, setHasFlash] = useState(false);
   const [flashOn, setFlashOn] = useState(false);
   const [cameraError, setCameraError] = useState<string | null>(null);
+  const [isProcessing, setIsProcessing] = useState(false);
   const videoRef = useRef<HTMLVideoElement>(null);
   const canvasRef = useRef<HTMLCanvasElement>(null);
   
@@ -96,35 +98,53 @@ const Scan = () => {
     }
   };
   
-  const captureImage = () => {
+  const captureImage = async () => {
     if (!videoRef.current || !canvasRef.current) return;
     
-    const video = videoRef.current;
-    const canvas = canvasRef.current;
-    
-    canvas.width = video.videoWidth;
-    canvas.height = video.videoHeight;
-    
-    const ctx = canvas.getContext('2d');
-    if (!ctx) return;
-    
-    ctx.drawImage(video, 0, 0, canvas.width, canvas.height);
-    
-    // In a real app, here we would send the image to a math OCR service
-    // For demo purposes, we'll simulate finding an equation
-    toast.success("Processing image...");
-    
-    setTimeout(() => {
-      // Simulate successful equation extraction
-      const equation = "3x + 2 = 8";
-      toast.success("Equation detected!");
+    try {
+      setIsProcessing(true);
+      toast.info("Processing image...");
+      
+      const video = videoRef.current;
+      const canvas = canvasRef.current;
+      
+      canvas.width = video.videoWidth;
+      canvas.height = video.videoHeight;
+      
+      const ctx = canvas.getContext('2d');
+      if (!ctx) {
+        toast.error("Failed to process image");
+        setIsProcessing(false);
+        return;
+      }
+      
+      // Draw video frame to canvas
+      ctx.drawImage(video, 0, 0, canvas.width, canvas.height);
+      
+      // Get the image data from the canvas
+      const imageData = canvas.toDataURL('image/jpeg');
+      
+      // Extract text using Google Vision API
+      const extractedText = await extractTextFromImage(imageData);
+      
+      if (!extractedText) {
+        toast.error("No text detected in the image. Try again with clearer lighting.");
+        setIsProcessing(false);
+        return;
+      }
+      
+      toast.success("Math expression detected!");
       
       // Stop the camera
       stopCamera();
       
       // Navigate to the results page
-      navigate(`/results?equation=${encodeURIComponent(equation)}`);
-    }, 1500);
+      navigate(`/results?equation=${encodeURIComponent(extractedText)}`);
+    } catch (error) {
+      console.error('Error capturing image:', error);
+      toast.error("Failed to process image");
+      setIsProcessing(false);
+    }
   };
   
   const stopCamera = () => {
@@ -135,6 +155,7 @@ const Scan = () => {
       setIsScanning(false);
       setFlashOn(false);
     }
+    setIsProcessing(false);
   };
   
   const switchCamera = async () => {
@@ -203,11 +224,15 @@ const Scan = () => {
                 style={{ maxHeight: "70vh" }}
               />
               
-              {/* Overlay with instruction */}
+              {/* Enhanced overlay with better scan frame */}
               <div className="absolute inset-0 flex flex-col justify-center items-center pointer-events-none">
                 <div className="w-4/5 h-20 border-2 border-primary animate-pulse-slow rounded-md flex items-center justify-center">
+                  <div className="absolute w-8 h-8 border-t-2 border-l-2 border-primary -top-1 -left-1 rounded-tl-md"></div>
+                  <div className="absolute w-8 h-8 border-t-2 border-r-2 border-primary -top-1 -right-1 rounded-tr-md"></div>
+                  <div className="absolute w-8 h-8 border-b-2 border-l-2 border-primary -bottom-1 -left-1 rounded-bl-md"></div>
+                  <div className="absolute w-8 h-8 border-b-2 border-r-2 border-primary -bottom-1 -right-1 rounded-br-md"></div>
                   <p className="text-white text-shadow bg-black/50 px-2 py-1 rounded text-sm">
-                    Hold steady to scan equation
+                    {isProcessing ? "Processing..." : "Hold steady to scan equation"}
                   </p>
                 </div>
               </div>
@@ -219,6 +244,7 @@ const Scan = () => {
                     size="icon"
                     className="rounded-full w-12 h-12"
                     onClick={toggleFlash}
+                    disabled={isProcessing}
                   >
                     <Lightbulb className={`h-6 w-6 ${flashOn ? 'text-yellow-400' : ''}`} />
                   </Button>
@@ -228,14 +254,21 @@ const Scan = () => {
                   size="icon"
                   className="rounded-full w-14 h-14 bg-primary"
                   onClick={captureImage}
+                  disabled={isProcessing}
                 >
                   <Camera className="h-7 w-7" />
+                  {isProcessing && (
+                    <span className="absolute inset-0 flex items-center justify-center">
+                      <span className="animate-spin h-5 w-5 border-t-2 border-b-2 border-white rounded-full"></span>
+                    </span>
+                  )}
                 </Button>
                 <Button 
                   variant="secondary" 
                   size="icon"
                   className="rounded-full w-12 h-12"
                   onClick={switchCamera}
+                  disabled={isProcessing}
                 >
                   <FlipHorizontal className="h-6 w-6" />
                 </Button>
@@ -246,6 +279,15 @@ const Scan = () => {
         
         {/* Hidden canvas for image capture */}
         <canvas ref={canvasRef} className="hidden" />
+
+        <div className="text-center text-muted-foreground text-sm">
+          <p>For best scanning results:</p>
+          <ul className="list-disc list-inside">
+            <li>Ensure good lighting on the equation</li>
+            <li>Keep the device steady</li>
+            <li>Focus the equation within the frame</li>
+          </ul>
+        </div>
       </div>
     </Layout>
   );

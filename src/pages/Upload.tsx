@@ -6,6 +6,7 @@ import { Card } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { ArrowLeft, Upload, Image, Check, X } from 'lucide-react';
 import { toast } from "sonner";
+import { extractTextFromImage } from '@/utils/visionApi';
 
 const UploadPage = () => {
   const navigate = useNavigate();
@@ -34,24 +35,31 @@ const UploadPage = () => {
     fileInputRef.current?.click();
   };
   
-  const processImage = () => {
+  const processImage = async () => {
     if (!selectedImage) return;
     
     setIsProcessing(true);
     toast.info("Processing image...");
     
-    // In a real app, we would send the image to a math OCR service
-    // For demo purposes, we'll simulate processing
-    setTimeout(() => {
-      setIsProcessing(false);
+    try {
+      // Extract text using Google Vision API
+      const extractedText = await extractTextFromImage(selectedImage);
       
-      // Simulate successful equation extraction
-      const equation = "\\sum_{n=1}^{\\infty} \\frac{1}{n^2} = \\frac{\\pi^2}{6}";
-      toast.success("Equation extracted!");
+      if (!extractedText) {
+        toast.error("No text detected in the image. Try again with a clearer image.");
+        setIsProcessing(false);
+        return;
+      }
+      
+      toast.success("Math expression extracted!");
       
       // Navigate to the results page
-      navigate(`/results?equation=${encodeURIComponent(equation)}`);
-    }, 2000);
+      navigate(`/results?equation=${encodeURIComponent(extractedText)}`);
+    } catch (error) {
+      console.error('Error processing image:', error);
+      toast.error("Failed to process image");
+      setIsProcessing(false);
+    }
   };
   
   const cancelSelection = () => {
@@ -139,6 +147,7 @@ const UploadPage = () => {
             <li>Ensure the equation is clearly visible</li>
             <li>Avoid glare and shadows</li>
             <li>Center the equation in the image</li>
+            <li>Both printed and handwritten equations are supported</li>
           </ul>
         </div>
       </div>

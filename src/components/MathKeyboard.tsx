@@ -65,7 +65,7 @@ const MathKeyboard: React.FC<MathKeyboardProps> = ({ onInput, onBackspace, onCle
                   className={buttonClass} 
                   onClick={() => onInput(key)}
                 >
-                  {key}
+                  {key.replace(/\\/g, '')}
                 </Button>
               ))
             ))}
