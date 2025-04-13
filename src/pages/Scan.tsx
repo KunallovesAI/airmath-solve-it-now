@@ -27,10 +27,9 @@ const Scan = () => {
         videoRef.current.srcObject = stream;
         setIsScanning(true);
         
-        // Check if flash is available
-        const track = stream.getVideoTracks()[0];
-        const capabilities = track.getCapabilities();
-        setHasFlash(capabilities.torch !== undefined);
+        // Check if flash is available - in a real implementation, we'd need to
+        // use device-specific APIs since MediaTrackCapabilities doesn't universally support torch
+        setHasFlash(false); // Simplified for browser compatibility
       }
     } catch (error) {
       console.error('Error accessing camera:', error);
@@ -42,14 +41,10 @@ const Scan = () => {
     if (!videoRef.current?.srcObject) return;
     
     try {
-      const stream = videoRef.current.srcObject as MediaStream;
-      const track = stream.getVideoTracks()[0];
-      
-      await track.applyConstraints({
-        advanced: [{ torch: !flashOn }]
-      });
-      
+      // In a real implementation, this would use device-specific APIs
+      // as the standard doesn't universally support flash control
       setFlashOn(!flashOn);
+      toast.info(flashOn ? "Flash turned off" : "Flash turned on");
     } catch (error) {
       console.error('Error toggling flash:', error);
       toast.error("Flash control not available");

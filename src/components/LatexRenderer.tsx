@@ -1,4 +1,5 @@
 
+import { ReactNode } from 'react';
 import 'katex/dist/katex.min.css';
 import Latex from 'react-latex-next';
 
