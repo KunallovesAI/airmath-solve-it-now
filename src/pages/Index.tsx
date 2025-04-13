@@ -1,13 +1,28 @@
-// Update this page (the content is just a fallback if you fail to update the page)
+
+import Layout from '@/components/Layout';
+import InputMethods from '@/components/InputMethods';
+import { Card, CardContent } from '@/components/ui/card';
 
 const Index = () => {
   return (
-    <div className="min-h-screen flex items-center justify-center bg-gray-100">
-      <div className="text-center">
-        <h1 className="text-4xl font-bold mb-4">Welcome to Your Blank App</h1>
-        <p className="text-xl text-gray-600">Start building your amazing project here!</p>
+    <Layout>
+      <div className="space-y-8">
+        <div className="text-center space-y-2">
+          <h1 className="text-4xl font-bold tracking-tight">
+            Welcome to <span className="bg-gradient-to-r from-purple-600 to-violet-500 text-transparent bg-clip-text">AIRMATH</span>
+          </h1>
+          <p className="text-lg text-muted-foreground">
+            Solve math problems instantly with our powerful tools
+          </p>
+        </div>
+
+        <Card>
+          <CardContent className="pt-6">
+            <InputMethods />
+          </CardContent>
+        </Card>
       </div>
-    </div>
+    </Layout>
   );
 };
 
