@@ -1,3 +1,4 @@
+
 // This is a simple implementation of a math solver
 // In a real app, this would be connected to a more robust math engine
 
@@ -69,6 +70,8 @@ const cleanupEquation = (equation: string): string => {
  */
 const solveEquationLocally = (equation: string): SolutionResult => {
   // This is our existing solver logic
+  console.log("Solving equation locally:", equation);
+  
   // Example for simple equations like "2x + 3 = 7"
   if (equation.match(/\d*x\s*\+\s*\d+\s*=\s*\d+/)) {
     const parts = equation.split('=');
@@ -160,7 +163,7 @@ const solveEquationLocally = (equation: string): SolutionResult => {
   }
   
   // Integration example
-  if (equation.match(/\\int/) || equation.match(/∫/)) {
+  if (equation.match(/\\int/) || equation.match(/∫/) || equation.includes("int")) {
     return {
       original: equation,
       steps: [

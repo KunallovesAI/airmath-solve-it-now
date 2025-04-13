@@ -4,7 +4,7 @@ import { useNavigate } from 'react-router-dom';
 import Layout from '@/components/Layout';
 import { Card } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
-import { ArrowLeft, Upload, Image, Check, X } from 'lucide-react';
+import { ArrowLeft, Upload as UploadIcon, Image, Check, X } from 'lucide-react';
 import { toast } from "sonner";
 import { extractTextFromImage } from '@/utils/visionApi';
 
@@ -52,9 +52,11 @@ const UploadPage = () => {
       }
       
       toast.success("Math expression extracted!");
+      console.log("Extracted text:", extractedText);
       
-      // Navigate to the results page
-      navigate(`/results?equation=${encodeURIComponent(extractedText)}`);
+      // Navigate to the results page with a timestamp to prevent caching
+      const timestamp = new Date().getTime();
+      navigate(`/results?equation=${encodeURIComponent(extractedText)}&t=${timestamp}`);
     } catch (error) {
       console.error('Error processing image:', error);
       toast.error("Failed to process image");
@@ -91,7 +93,7 @@ const UploadPage = () => {
                     Select an image containing a math equation
                   </p>
                   <Button onClick={triggerFileInput}>
-                    <Upload className="mr-2 h-4 w-4" />
+                    <UploadIcon className="mr-2 h-4 w-4" />
                     Choose Image
                   </Button>
                 </div>

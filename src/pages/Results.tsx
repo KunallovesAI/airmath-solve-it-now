@@ -28,27 +28,34 @@ const Results = () => {
   const [searchParams] = useSearchParams();
   const [solution, setSolution] = useState<SolutionResult | null>(null);
   const [isLoading, setIsLoading] = useState(true);
+  const [equation, setEquation] = useState<string | null>(null);
   
   useEffect(() => {
     const fetchSolution = async () => {
-      const equation = searchParams.get('equation');
+      const equationParam = searchParams.get('equation');
       
-      if (!equation) {
+      if (!equationParam) {
         navigate('/');
         return;
       }
+
+      setEquation(equationParam);
+      console.log("Processing equation:", equationParam);
       
       try {
         // Solve the equation - properly handling the Promise
-        const result = await solveEquation(equation);
+        const result = await solveEquation(equationParam);
+        console.log("Solution result:", result);
         setSolution(result);
         
         // Save to history
-        saveEquation(equation, result.result);
+        if (result && result.result) {
+          saveEquation(equationParam, result.result);
+        }
       } catch (error) {
         console.error('Error solving equation:', error);
         setSolution({
-          original: equation,
+          original: equationParam,
           steps: [],
           result: "Error solving equation",
           error: "An unexpected error occurred."
@@ -120,11 +127,13 @@ const Results = () => {
           </CardHeader>
           <CardContent>
             <div className="flex justify-between items-center">
-              <LatexRenderer latex={solution.original} />
+              <div className="overflow-x-auto max-w-full">
+                <LatexRenderer latex={solution.original || equation || ''} />
+              </div>
               <Button
                 variant="ghost"
                 size="icon"
-                onClick={() => copyToClipboard(solution.original)}
+                onClick={() => copyToClipboard(solution.original || equation || '')}
               >
                 <Copy className="h-4 w-4" />
               </Button>
@@ -171,7 +180,9 @@ const Results = () => {
               </CardHeader>
               <CardContent>
                 <div className="flex justify-between items-center">
-                  <LatexRenderer latex={solution.result} />
+                  <div className="overflow-x-auto max-w-full">
+                    <LatexRenderer latex={solution.result} />
+                  </div>
                   <Button
                     variant="ghost"
                     size="icon"

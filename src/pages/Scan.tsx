@@ -47,6 +47,12 @@ const Scan = () => {
       
       if (videoRef.current) {
         videoRef.current.srcObject = stream;
+        
+        // Make sure the video is displayed properly
+        videoRef.current.style.display = 'block';
+        videoRef.current.style.width = '100%';
+        videoRef.current.style.height = 'auto';
+        
         videoRef.current.onloadedmetadata = () => {
           console.log("Video metadata loaded");
           if (videoRef.current) {
@@ -63,6 +69,8 @@ const Scan = () => {
         const track = stream.getVideoTracks()[0];
         const capabilities = track.getCapabilities ? track.getCapabilities() as ExtendedMediaTrackCapabilities : {};
         setHasFlash(capabilities.torch || false);
+        
+        console.log("Camera started successfully. Flash available:", capabilities.torch);
       }
     } catch (error) {
       console.error('Error accessing camera:', error);
@@ -220,6 +228,7 @@ const Scan = () => {
                 ref={videoRef} 
                 autoPlay 
                 playsInline
+                muted
                 className="w-full h-auto"
                 style={{ maxHeight: "70vh" }}
               />
@@ -286,6 +295,7 @@ const Scan = () => {
             <li>Ensure good lighting on the equation</li>
             <li>Keep the device steady</li>
             <li>Focus the equation within the frame</li>
+            <li>Allow camera permissions when prompted</li>
           </ul>
         </div>
       </div>

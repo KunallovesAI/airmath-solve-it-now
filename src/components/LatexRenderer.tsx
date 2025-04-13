@@ -17,6 +17,11 @@ const LatexRenderer: React.FC<LatexRendererProps> = ({
   // Handle LaTeX rendering safely
   const renderLatex = () => {
     try {
+      if (typeof latex !== 'string') {
+        console.error('Invalid latex input (not a string):', latex);
+        return { __html: 'Error: Invalid input format' };
+      }
+      
       // Don't add extra $ symbols - use the raw latex input
       return {
         __html: Katex.renderToString(latex, {
@@ -26,7 +31,7 @@ const LatexRenderer: React.FC<LatexRendererProps> = ({
       };
     } catch (error) {
       console.error('Error rendering LaTeX:', error);
-      return { __html: `Error: ${latex}` };
+      return { __html: `Error rendering: ${latex}` };
     }
   };
 

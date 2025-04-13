@@ -1,4 +1,5 @@
 
+
 import { toast } from "sonner";
 
 // The Google Vision API key (this would ideally be stored in a backend environment variable)
@@ -28,6 +29,8 @@ export const extractTextFromImage = async (imageBase64: string): Promise<string>
   try {
     // Make sure we're only sending the base64 data without the prefix
     const base64Data = imageBase64.split(',')[1] || imageBase64;
+    
+    console.log("Sending image to Google Vision API...");
     
     const response = await fetch(
       `https://vision.googleapis.com/v1/images:annotate?key=${GOOGLE_VISION_API_KEY}`,
@@ -66,6 +69,7 @@ export const extractTextFromImage = async (imageBase64: string): Promise<string>
     }
 
     const data: GoogleVisionResponse = await response.json();
+    console.log("Google Vision API response:", data);
     
     if (data.responses[0].error) {
       console.error('Google Vision API returned an error:', data.responses[0].error);
