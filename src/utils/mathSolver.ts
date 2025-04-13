@@ -1,4 +1,3 @@
-
 // This is a simple implementation of a math solver
 // In a real app, this would be connected to a more robust math engine
 

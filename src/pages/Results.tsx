@@ -27,21 +27,38 @@ const Results = () => {
   const navigate = useNavigate();
   const [searchParams] = useSearchParams();
   const [solution, setSolution] = useState<SolutionResult | null>(null);
+  const [isLoading, setIsLoading] = useState(true);
   
   useEffect(() => {
-    const equation = searchParams.get('equation');
+    const fetchSolution = async () => {
+      const equation = searchParams.get('equation');
+      
+      if (!equation) {
+        navigate('/');
+        return;
+      }
+      
+      try {
+        // Solve the equation - properly handling the Promise
+        const result = await solveEquation(equation);
+        setSolution(result);
+        
+        // Save to history
+        saveEquation(equation, result.result);
+      } catch (error) {
+        console.error('Error solving equation:', error);
+        setSolution({
+          original: equation,
+          steps: [],
+          result: "Error solving equation",
+          error: "An unexpected error occurred."
+        });
+      } finally {
+        setIsLoading(false);
+      }
+    };
     
-    if (!equation) {
-      navigate('/');
-      return;
-    }
-    
-    // Solve the equation
-    const result = solveEquation(equation);
-    setSolution(result);
-    
-    // Save to history
-    saveEquation(equation, result.result);
+    fetchSolution();
   }, [searchParams, navigate]);
   
   const copyToClipboard = (text: string) => {
@@ -50,11 +67,38 @@ const Results = () => {
       .catch(() => toast.error("Failed to copy"));
   };
   
-  if (!solution) {
+  if (isLoading) {
     return (
       <Layout>
         <div className="flex justify-center items-center h-[60vh]">
           <div className="animate-spin rounded-full h-10 w-10 border-t-2 border-b-2 border-primary"></div>
+        </div>
+      </Layout>
+    );
+  }
+  
+  if (!solution) {
+    return (
+      <Layout>
+        <div className="space-y-6">
+          <div className="flex items-center gap-2">
+            <Button variant="ghost" size="icon" onClick={() => navigate('/')}>
+              <ArrowLeft className="h-5 w-5" />
+            </Button>
+            <h1 className="text-2xl font-bold">Error</h1>
+          </div>
+          
+          <Card>
+            <CardHeader>
+              <CardTitle className="text-destructive">Unable to Process Equation</CardTitle>
+            </CardHeader>
+            <CardContent>
+              <p>We couldn't process the equation. Please try again.</p>
+              <Button className="mt-4" onClick={() => navigate('/')}>
+                Return Home
+              </Button>
+            </CardContent>
+          </Card>
         </div>
       </Layout>
     );
@@ -104,7 +148,7 @@ const Results = () => {
                 <CardTitle>Step-by-Step Solution</CardTitle>
               </CardHeader>
               <CardContent className="space-y-4">
-                {solution.steps.length > 0 ? (
+                {solution.steps && solution.steps.length > 0 ? (
                   solution.steps.map((step, index) => (
                     <div key={index} className="space-y-2 pb-4 border-b last:border-0">
                       <div className="text-muted-foreground text-sm">
