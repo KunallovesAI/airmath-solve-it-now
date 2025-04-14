@@ -1,4 +1,3 @@
-
 import { useState, useRef } from 'react';
 import { useNavigate } from 'react-router-dom';
 import Layout from '@/components/Layout';
@@ -52,7 +51,6 @@ const UploadPage = () => {
       }
       
       toast.success("Math expression extracted with Gemini AI!");
-      console.log("Extracted text:", result.text);
       
       // Navigate to the results page with a timestamp to prevent caching
       const timestamp = new Date().getTime();

@@ -78,14 +78,30 @@ export const solveMathWithGemini = async (imageBase64: string): Promise<GeminiRe
     }
 
     const extractedText = content.parts[0].text || '';
+    console.log('Extracted text:', extractedText);
     
-    // Use a regex to extract any LaTeX equations from the response
-    const equationMatches = extractedText.match(/\\\w+(?:\{[^}]*\})*|\\\([^)]*\\\)/g);
-    const extractedEquation = equationMatches ? equationMatches[0] : extractedText;
+    // Extract full equation from the Gemini response
+    // Look for equations that might be wrapped in $ signs or other LaTeX markers
+    const equationMatches = extractedText.match(/\$([^$]+)\$/);
+    if (equationMatches && equationMatches[1]) {
+      // Found equation inside $ markers
+      const fullEquation = equationMatches[1].trim();
+      console.log('Extracted full equation from Gemini:', fullEquation);
+      return { text: fullEquation };
+    }
     
-    console.log('Extracted equation from Gemini:', extractedEquation);
+    // If we couldn't find an equation wrapped in $ signs,
+    // look for other LaTeX equation patterns
+    const latexMatches = extractedText.match(/\\begin\{equation\}(.*?)\\end\{equation\}/s);
+    if (latexMatches && latexMatches[1]) {
+      const fullEquation = latexMatches[1].trim();
+      console.log('Extracted LaTeX equation from Gemini:', fullEquation);
+      return { text: fullEquation };
+    }
     
-    return { text: extractedEquation || extractedText };
+    // If no equation was found using the above methods, use the entire response
+    // which might contain enough information for our solver
+    return { text: extractedText };
   } catch (error) {
     console.error('Error extracting text from image with Gemini:', error);
     toast.error('Failed to analyze image with Gemini');

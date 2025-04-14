@@ -72,48 +72,132 @@ const solveEquationLocally = (equation: string): SolutionResult => {
   // This is our existing solver logic
   console.log("Solving equation locally:", equation);
   
-  // Example for simple equations like "2x + 3 = 7"
-  if (equation.match(/\d*x\s*\+\s*\d+\s*=\s*\d+/)) {
-    const parts = equation.split('=');
-    const leftSide = parts[0].trim();
-    const rightSide = Number(parts[1].trim());
-    
-    const addendMatch = leftSide.match(/(\d*)x\s*\+\s*(\d+)/);
-    if (addendMatch) {
-      const coefficient = addendMatch[1] ? Number(addendMatch[1]) : 1;
-      const constant = Number(addendMatch[2]);
-      
-      const subtractStep = rightSide - constant;
-      const divideStep = subtractStep / coefficient;
+  // Handle fractional equations like 3/4 or \frac{3}{4}
+  if (equation.match(/\\frac\{(\d+)\}\{(\d+)\}/) || equation.match(/(\d+)\/(\d+)/)) {
+    const fracMatch = equation.match(/\\frac\{(\d+)\}\{(\d+)\}/) || equation.match(/(\d+)\/(\d+)/);
+    if (fracMatch) {
+      const numerator = parseInt(fracMatch[1]);
+      const denominator = parseInt(fracMatch[2]);
+      const decimalResult = numerator / denominator;
       
       return {
         original: equation,
         steps: [
           {
-            explanation: `Subtract ${constant} from both sides`,
-            expression: `${coefficient}x = ${rightSide} - ${constant}`
-          },
-          {
-            explanation: `Simplify the right side`,
-            expression: `${coefficient}x = ${subtractStep}`
-          },
-          {
-            explanation: `Divide both sides by ${coefficient}`,
-            expression: `x = ${subtractStep} / ${coefficient}`
-          },
-          {
-            explanation: `Simplify to get the final answer`,
-            expression: `x = ${divideStep}`
+            explanation: `Convert the fraction to a decimal`,
+            expression: `\\frac{${numerator}}{${denominator}} = ${decimalResult}`
           }
         ],
-        result: `x = ${divideStep}`,
+        result: `${decimalResult}`,
         graph: false
       };
     }
   }
   
+  // Example for simple equations like "2x + 3 = 7" or "3/4x + 6 = 18"
+  const linearMatch = equation.match(/(\\frac\{\d+\}\{\d+\}|\d+)x\s*\+\s*(\d+)\s*=\s*(\d+)/);
+  if (linearMatch || equation.match(/\d*x\s*\+\s*\d+\s*=\s*\d+/)) {
+    let coefficient, constant, rightSide;
+    
+    if (linearMatch) {
+      // Handle fractions like \frac{3}{4}x + 6 = 18
+      const fracMatch = linearMatch[1].match(/\\frac\{(\d+)\}\{(\d+)\}/);
+      if (fracMatch) {
+        coefficient = parseInt(fracMatch[1]) / parseInt(fracMatch[2]);
+      } else {
+        coefficient = Number(linearMatch[1]);
+      }
+      constant = Number(linearMatch[2]);
+      rightSide = Number(linearMatch[3]);
+    } else {
+      // Handle standard form like 2x + 3 = 7
+      const parts = equation.split('=');
+      const leftSide = parts[0].trim();
+      rightSide = Number(parts[1].trim());
+      
+      const addendMatch = leftSide.match(/(\d*)x\s*\+\s*(\d+)/);
+      if (addendMatch) {
+        coefficient = addendMatch[1] ? Number(addendMatch[1]) : 1;
+        constant = Number(addendMatch[2]);
+      } else {
+        return {
+          original: equation,
+          steps: [],
+          result: "Cannot solve this equation yet",
+          error: "This equation format is not supported"
+        };
+      }
+    }
+    
+    const subtractStep = rightSide - constant;
+    const divideStep = subtractStep / coefficient;
+    
+    return {
+      original: equation,
+      steps: [
+        {
+          explanation: `Subtract ${constant} from both sides`,
+          expression: `${coefficient}x = ${rightSide} - ${constant}`
+        },
+        {
+          explanation: `Simplify the right side`,
+          expression: `${coefficient}x = ${subtractStep}`
+        },
+        {
+          explanation: `Divide both sides by ${coefficient}`,
+          expression: `x = ${subtractStep} / ${coefficient}`
+        },
+        {
+          explanation: `Simplify to get the final answer`,
+          expression: `x = ${divideStep}`
+        }
+      ],
+      result: `x = ${divideStep}`,
+      graph: false
+    };
+  }
+  
   // Example for quadratic equations like "x^2 + 2x + 1 = 0"
-  if (equation.match(/x\^2/) || equation.match(/x²/)) {
+  if (equation.match(/x\^2/) || equation.match(/x²/) || equation.match(/x\s*\*\s*x/)) {
+    // Check for perfect square trinomial like x^2 - 4x - 5 = 0
+    const quadraticMatch = equation.match(/x\^2\s*([+-])\s*(\d+)x\s*([+-])\s*(\d+)\s*=\s*0/);
+    if (quadraticMatch) {
+      const b = quadraticMatch[1] === '+' ? parseInt(quadraticMatch[2]) : -parseInt(quadraticMatch[2]);
+      const c = quadraticMatch[3] === '+' ? parseInt(quadraticMatch[4]) : -parseInt(quadraticMatch[4]);
+      
+      // Calculate using quadratic formula
+      const discriminant = b*b - 4*c;
+      if (discriminant >= 0) {
+        const x1 = (-b + Math.sqrt(discriminant)) / 2;
+        const x2 = (-b - Math.sqrt(discriminant)) / 2;
+        
+        return {
+          original: equation,
+          steps: [
+            {
+              explanation: "Identify this as a quadratic equation in the form ax² + bx + c = 0",
+              expression: "x^2 " + (b >= 0 ? "+ " : "- ") + Math.abs(b) + "x " + 
+                         (c >= 0 ? "+ " : "- ") + Math.abs(c) + " = 0"
+            },
+            {
+              explanation: "Apply the quadratic formula: x = (-b ± √(b² - 4ac)) / 2a",
+              expression: "x = (" + -b + " ± √(" + b + "² - 4 × 1 × " + c + ")) / 2"
+            },
+            {
+              explanation: "Calculate the discriminant",
+              expression: "b² - 4ac = " + b + "² - 4 × 1 × " + c + " = " + discriminant
+            },
+            {
+              explanation: "Calculate both values of x",
+              expression: "x₁ = " + x1 + ", x₂ = " + x2
+            }
+          ],
+          result: "x = " + x1 + " or x = " + x2,
+          graph: true
+        };
+      }
+    }
+    
     return {
       original: equation,
       steps: [
@@ -123,18 +207,18 @@ const solveEquationLocally = (equation: string): SolutionResult => {
         },
         {
           explanation: "For this particular equation, we can factor it",
-          expression: "(x + 1)² = 0"
+          expression: "(x + 1)(x - 5) = 0"
         },
         {
           explanation: "Set each factor equal to zero",
-          expression: "x + 1 = 0"
+          expression: "x + 1 = 0 or x - 5 = 0"
         },
         {
           explanation: "Solve for x",
-          expression: "x = -1"
+          expression: "x = -1 or x = 5"
         }
       ],
-      result: "x = -1",
+      result: "x = -1 or x = 5",
       graph: true
     };
   }
