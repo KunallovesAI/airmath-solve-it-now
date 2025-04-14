@@ -13,6 +13,7 @@ import Upload from "./pages/Upload";
 import Type from "./pages/Type";
 import Results from "./pages/Results";
 import NotFound from "./pages/NotFound";
+import HandGesture from "./pages/HandGesture";
 
 // Create a new QueryClient instance outside of the component
 const queryClient = new QueryClient();
@@ -40,6 +41,7 @@ const App = () => {
               <Route path="/upload" element={<Upload />} />
               <Route path="/type" element={<Type />} />
               <Route path="/results" element={<Results />} />
+              <Route path="/hand-gesture" element={<HandGesture />} />
               <Route path="*" element={<NotFound />} />
             </Routes>
           </BrowserRouter>

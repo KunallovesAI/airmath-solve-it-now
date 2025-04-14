@@ -1,5 +1,5 @@
 
-import { Camera, PenLine, Upload, Keyboard } from 'lucide-react';
+import { Camera, PenLine, Upload, Keyboard, Hand } from 'lucide-react';
 import { Link } from 'react-router-dom';
 
 const InputMethods = () => {
@@ -27,6 +27,12 @@ const InputMethods = () => {
       icon: Keyboard,
       path: '/type',
       description: 'Type equations with math keyboard',
+    },
+    {
+      name: 'Gesture',
+      icon: Hand,
+      path: '/hand-gesture',
+      description: 'Solve using hand gestures',
     },
   ];
 
