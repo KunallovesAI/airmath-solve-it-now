@@ -29,6 +29,7 @@ const Results = () => {
   const [solution, setSolution] = useState<SolutionResult | null>(null);
   const [isLoading, setIsLoading] = useState(true);
   const [equation, setEquation] = useState<string | null>(null);
+  const [rawResponse, setRawResponse] = useState<string | null>(null);
   
   useEffect(() => {
     const fetchSolution = async () => {
@@ -40,10 +41,11 @@ const Results = () => {
       }
 
       setEquation(equationParam);
+      setRawResponse(equationParam); // Store the raw response
       console.log("Processing equation:", equationParam);
       
       try {
-        // Solve the equation - properly handling the Promise
+        // Solve the equation
         const result = await solveEquation(equationParam);
         console.log("Solution result:", result);
         setSolution(result);
@@ -161,7 +163,7 @@ const Results = () => {
                   solution.steps.map((step, index) => (
                     <div key={index} className="space-y-2 pb-4 border-b last:border-0">
                       <div className="text-muted-foreground text-sm">
-                        Step {index + 1}: {step.explanation}
+                        {step.explanation}
                       </div>
                       <LatexRenderer latex={step.expression} />
                     </div>
@@ -193,20 +195,6 @@ const Results = () => {
                 </div>
               </CardContent>
             </Card>
-
-            {solution.graph && (
-              <Card>
-                <CardHeader>
-                  <CardTitle>Graph</CardTitle>
-                </CardHeader>
-                <CardContent className="flex flex-col items-center py-8">
-                  <LineChart className="h-24 w-24 text-muted-foreground mb-4" />
-                  <p className="text-center text-muted-foreground">
-                    Graph visualization would be shown here in a complete implementation.
-                  </p>
-                </CardContent>
-              </Card>
-            )}
           </>
         )}
       </div>

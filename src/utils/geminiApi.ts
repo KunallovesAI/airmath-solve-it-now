@@ -36,7 +36,7 @@ export const solveMathWithGemini = async (imageBase64: string): Promise<GeminiRe
               role: "user",
               parts: [
                 {
-                  text: "Extract and solve the mathematical equation in this image. Return only the equation, steps to solve it, and the final answer. Format it correctly for LaTeX."
+                  text: "You are a math equation solver. Extract the mathematical equation from this image and solve it. Format your response as follows:\n\n**Equation:**\n$ [equation] $\n\n**Steps to Solve:**\n1. **[Step title]:**\n$ [equation] $\n\n2. **[Step title]:**\n$ [equation] $\n\n... and so on.\n\n**Final Answer:**\n$ [result] $\n\nKeep equations in LaTeX format within $ symbols. Use only LaTeX format for equations. Show all intermediate steps clearly."
                 },
                 {
                   inline_data: {
@@ -109,7 +109,7 @@ export const solveTextEquationWithGemini = async (equation: string): Promise<Gem
               role: "user",
               parts: [
                 {
-                  text: `Solve this mathematical equation and show all steps: ${equation}. Format the solution properly for LaTeX.`
+                  text: `You are a math equation solver. Solve this equation: ${equation}\n\nFormat your response as follows:\n\n**Equation:**\n$ [equation] $\n\n**Steps to Solve:**\n1. **[Step title]:**\n$ [equation] $\n\n2. **[Step title]:**\n$ [equation] $\n\n... and so on.\n\n**Final Answer:**\n$ [result] $\n\nKeep equations in LaTeX format within $ symbols. Use only LaTeX format for equations. Show all intermediate steps clearly.`
                 }
               ]
             }
