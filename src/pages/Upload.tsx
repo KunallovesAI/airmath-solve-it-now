@@ -6,7 +6,7 @@ import { Card } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { ArrowLeft, Upload as UploadIcon, Image, Check, X } from 'lucide-react';
 import { toast } from "sonner";
-import { extractTextFromImage } from '@/utils/visionApi';
+import { solveMathWithGemini } from '@/utils/geminiApi';
 
 const UploadPage = () => {
   const navigate = useNavigate();
@@ -39,24 +39,24 @@ const UploadPage = () => {
     if (!selectedImage) return;
     
     setIsProcessing(true);
-    toast.info("Processing image...");
+    toast.info("Processing image with Gemini AI...");
     
     try {
-      // Extract text using Google Vision API
-      const extractedText = await extractTextFromImage(selectedImage);
+      // Send to Gemini API
+      const result = await solveMathWithGemini(selectedImage);
       
-      if (!extractedText) {
-        toast.error("No text detected in the image. Try again with a clearer image.");
+      if (result.error || !result.text) {
+        toast.error(result.error || "Failed to recognize equation from image");
         setIsProcessing(false);
         return;
       }
       
-      toast.success("Math expression extracted!");
-      console.log("Extracted text:", extractedText);
+      toast.success("Math expression extracted with Gemini AI!");
+      console.log("Extracted text:", result.text);
       
       // Navigate to the results page with a timestamp to prevent caching
       const timestamp = new Date().getTime();
-      navigate(`/results?equation=${encodeURIComponent(extractedText)}&t=${timestamp}`);
+      navigate(`/results?equation=${encodeURIComponent(result.text)}&t=${timestamp}`);
     } catch (error) {
       console.error('Error processing image:', error);
       toast.error("Failed to process image");
@@ -127,8 +127,17 @@ const UploadPage = () => {
                     onClick={processImage}
                     disabled={isProcessing}
                   >
-                    <Check className="mr-2 h-4 w-4" />
-                    Confirm & Process
+                    {isProcessing ? (
+                      <div className="flex items-center">
+                        <div className="animate-spin rounded-full h-4 w-4 border-t-2 border-b-2 border-white mr-2"></div>
+                        Processing...
+                      </div>
+                    ) : (
+                      <>
+                        <Check className="mr-2 h-4 w-4" />
+                        Confirm & Process
+                      </>
+                    )}
                   </Button>
                 </div>
               </div>
@@ -149,7 +158,7 @@ const UploadPage = () => {
             <li>Ensure the equation is clearly visible</li>
             <li>Avoid glare and shadows</li>
             <li>Center the equation in the image</li>
-            <li>Both printed and handwritten equations are supported</li>
+            <li>Powered by Google Gemini AI for accurate recognition</li>
           </ul>
         </div>
       </div>

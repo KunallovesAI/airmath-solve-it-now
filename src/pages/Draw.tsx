@@ -6,6 +6,7 @@ import { Card } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { ArrowLeft, Eraser, Send, Trash2 } from 'lucide-react';
 import { toast } from "sonner";
+import { solveMathWithGemini } from '@/utils/geminiApi';
 
 const Draw = () => {
   const navigate = useNavigate();
@@ -13,6 +14,7 @@ const Draw = () => {
   const [isDrawing, setIsDrawing] = useState(false);
   const [canvasContext, setCanvasContext] = useState<CanvasRenderingContext2D | null>(null);
   const [hasDrawn, setHasDrawn] = useState(false);
+  const [isProcessing, setIsProcessing] = useState(false);
   
   useEffect(() => {
     const canvas = canvasRef.current;
@@ -103,24 +105,40 @@ const Draw = () => {
     setHasDrawn(false);
   };
   
-  const recognizeEquation = () => {
+  const recognizeEquation = async () => {
     if (!hasDrawn) {
       toast.error("Please draw an equation first");
       return;
     }
     
-    toast.info("Analyzing your handwriting...");
+    if (!canvasRef.current) return;
     
-    // In a real app, we would send the canvas image to a handwriting recognition service
-    // For demo purposes, we'll simulate recognition
-    setTimeout(() => {
-      // Simulate successful recognition
-      const equation = "\\int x^2 dx";
-      toast.success("Equation recognized!");
+    setIsProcessing(true);
+    toast.info("Analyzing your handwriting with Gemini AI...");
+    
+    try {
+      // Convert canvas to base64 image data
+      const imageData = canvasRef.current.toDataURL('image/jpeg');
       
-      // Navigate to the results page
-      navigate(`/results?equation=${encodeURIComponent(equation)}`);
-    }, 1500);
+      // Send to Gemini API
+      const result = await solveMathWithGemini(imageData);
+      
+      if (result.error || !result.text) {
+        toast.error(result.error || "Failed to recognize equation");
+        setIsProcessing(false);
+        return;
+      }
+      
+      toast.success("Equation recognized with Gemini AI!");
+      
+      // Navigate to the results page with a timestamp to prevent caching
+      const timestamp = new Date().getTime();
+      navigate(`/results?equation=${encodeURIComponent(result.text)}&t=${timestamp}`);
+    } catch (error) {
+      console.error("Error recognizing equation:", error);
+      toast.error("Failed to process equation");
+      setIsProcessing(false);
+    }
   };
   
   return (
@@ -151,6 +169,7 @@ const Draw = () => {
             <Button
               variant="outline"
               onClick={clearCanvas}
+              disabled={isProcessing}
             >
               <Trash2 className="h-4 w-4 mr-2" />
               Clear
@@ -159,17 +178,26 @@ const Draw = () => {
             <Button
               variant="default"
               onClick={recognizeEquation}
-              disabled={!hasDrawn}
+              disabled={!hasDrawn || isProcessing}
             >
-              <Send className="h-4 w-4 mr-2" />
-              Recognize
+              {isProcessing ? (
+                <div className="flex items-center">
+                  <div className="animate-spin rounded-full h-4 w-4 border-t-2 border-b-2 border-white mr-2"></div>
+                  Processing...
+                </div>
+              ) : (
+                <>
+                  <Send className="h-4 w-4 mr-2" />
+                  Recognize
+                </>
+              )}
             </Button>
           </div>
         </Card>
         
         <div className="text-center text-muted-foreground text-sm">
           <p>Draw your equation clearly using your finger or stylus</p>
-          <p>Supports mathematical symbols, fractions, and more</p>
+          <p>Powered by Google Gemini AI for accurate recognition</p>
         </div>
       </div>
     </Layout>
