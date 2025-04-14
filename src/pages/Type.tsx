@@ -8,10 +8,12 @@ import { ArrowLeft, Send } from 'lucide-react';
 import MathKeyboard from '@/components/MathKeyboard';
 import LatexRenderer from '@/components/LatexRenderer';
 import { toast } from "sonner";
+import { solveTextEquationWithGemini } from '@/utils/geminiApi';
 
 const Type = () => {
   const navigate = useNavigate();
   const [equation, setEquation] = useState("");
+  const [isProcessing, setIsProcessing] = useState(false);
   
   const handleInput = (value: string) => {
     // Direct input without adding extra $ symbols
@@ -35,14 +37,35 @@ const Type = () => {
     setEquation("");
   };
   
-  const handleSolve = () => {
+  const handleSolve = async () => {
     if (!equation.trim()) {
       toast.error("Please enter an equation first");
       return;
     }
     
-    // Navigate to the results page
-    navigate(`/results?equation=${encodeURIComponent(equation)}`);
+    setIsProcessing(true);
+    toast.info("Processing equation with Gemini AI...");
+    
+    try {
+      // Send to Gemini API
+      const result = await solveTextEquationWithGemini(equation);
+      
+      if (result.error || !result.text) {
+        toast.error(result.error || "Failed to process equation");
+        setIsProcessing(false);
+        return;
+      }
+      
+      toast.success("Equation processed with Gemini AI!");
+      
+      // Navigate to the results page with a timestamp to prevent caching
+      const timestamp = new Date().getTime();
+      navigate(`/results?equation=${encodeURIComponent(result.text)}&t=${timestamp}`);
+    } catch (error) {
+      console.error('Error processing equation:', error);
+      toast.error("Failed to process equation");
+      setIsProcessing(false);
+    }
   };
   
   return (
@@ -72,10 +95,19 @@ const Type = () => {
             <Button 
               className="w-full" 
               onClick={handleSolve}
-              disabled={!equation.trim()}
+              disabled={!equation.trim() || isProcessing}
             >
-              <Send className="mr-2 h-4 w-4" />
-              Solve Equation
+              {isProcessing ? (
+                <div className="flex items-center">
+                  <div className="animate-spin rounded-full h-4 w-4 border-t-2 border-b-2 border-white mr-2"></div>
+                  Processing...
+                </div>
+              ) : (
+                <>
+                  <Send className="mr-2 h-4 w-4" />
+                  Solve Equation
+                </>
+              )}
             </Button>
           </CardFooter>
         </Card>
