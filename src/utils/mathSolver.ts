@@ -1,6 +1,4 @@
-
-// This is a simple implementation of a math solver
-// In a real app, this would be connected to a more robust math engine
+// Math solver utility for processing equations and solutions
 
 interface SolutionStep {
   explanation: string;
@@ -20,11 +18,23 @@ interface SolutionResult {
  */
 export const solveEquation = async (equation: string): Promise<SolutionResult> => {
   try {
-    // First prepare the equation for processing
-    const cleanedEquation = cleanupEquation(equation);
+    console.log("Processing equation:", equation);
+    
+    // Check for error messages from Gemini
+    if (equation.includes("No equation detected") || 
+        equation.includes("image is blank") ||
+        equation.includes("no equation")) {
+      return {
+        original: "No valid equation detected",
+        steps: [],
+        result: "Unable to process",
+        error: "No valid equation detected in the image. Please try again with clearer writing."
+      };
+    }
     
     // Extract the actual equation and solution from Gemini's response
-    const parsedData = parseGeminiResponse(cleanedEquation);
+    const parsedData = parseGeminiResponse(equation);
+    console.log("Parsing Gemini response:", equation);
     
     // Return the parsed solution
     return parsedData;
@@ -93,6 +103,12 @@ const parseGeminiResponse = (response: string): SolutionResult => {
       resultMatch = response.match(/\*Final Answer:\*\s*\$(.*?)\$/);
     }
     if (!resultMatch || !resultMatch[1]) {
+      resultMatch = response.match(/Result:\s*\$(.*?)\$/);
+    }
+    if (!resultMatch || !resultMatch[1]) {
+      resultMatch = response.match(/Answer:\s*\$(.*?)\$/);
+    }
+    if (!resultMatch || !resultMatch[1]) {
       // Try to find the last LaTeX expression as a fallback for result
       const allLatexMatches = response.match(/\$(.*?)\$/g);
       if (allLatexMatches && allLatexMatches.length > 0) {
@@ -109,7 +125,9 @@ const parseGeminiResponse = (response: string): SolutionResult => {
     const stepsPatterns = [
       /\*\*Steps to Solve:\*\*([\s\S]*?)(?:\*\*Final Answer|$)/,
       /Steps to Solve:([\s\S]*?)(?:Final Answer|$)/,
-      /\*Steps to Solve:\*([\s\S]*?)(?:\*Final Answer|$)/
+      /\*Steps to Solve:\*([\s\S]*?)(?:\*Final Answer|$)/,
+      /Solution:([\s\S]*?)(?:Final Answer|$)/,
+      /\*\*Solution:\*\*([\s\S]*?)(?:\*\*Final Answer|$)/
     ];
     
     let stepsSection = null;
@@ -124,13 +142,14 @@ const parseGeminiResponse = (response: string): SolutionResult => {
     if (stepsSection) {
       const stepText = stepsSection;
       
-      // Match all numbered steps with different patterns
+      // Try to match all numbered steps with different patterns
       const stepPatterns = [
         /(\d+\.\s*\*\*[^*]+\*\*:?)([\s\S]*?)(?=\d+\.\s*\*\*|$)/g,
         /(\d+\.\s*[^:]+:)([\s\S]*?)(?=\d+\.\s*|$)/g,
         /(\*\*Step \d+\*\*:)([\s\S]*?)(?=\*\*Step \d+\*\*:|$)/g,
         /(\*Step \d+\*:)([\s\S]*?)(?=\*Step \d+\*:|$)/g,
-        /(Step \d+:)([\s\S]*?)(?=Step \d+:|$)/g
+        /(Step \d+:)([\s\S]*?)(?=Step \d+:|$)/g,
+        /(\**[^:*]+\**:)([\s\S]*?)(?=\**[^:*]+\**:|$)/g  // General pattern for any step-like formatting
       ];
       
       for (const pattern of stepPatterns) {
@@ -182,12 +201,56 @@ const parseGeminiResponse = (response: string): SolutionResult => {
       }
     }
     
+    // If we have an equation but no steps or result, try to extract any content
+    if (originalEquation !== response && solutionSteps.length === 0 && finalResult === "Could not extract result") {
+      // Get all text after the equation section
+      const afterEquation = response.split(/\*\*Equation:\*\*\s*\$(.*?)\$/s)[2] || response;
+      
+      // Try to extract any meaningful content
+      const cleanedContent = afterEquation
+        .replace(/\*\*/g, '')
+        .replace(/\\n/g, ' ')
+        .trim();
+        
+      if (cleanedContent) {
+        solutionSteps.push({
+          explanation: "Solution process",
+          expression: cleanedContent
+        });
+        
+        // Use the last part as the result
+        const parts = cleanedContent.split(/\.|;|:/);
+        if (parts.length > 1) {
+          finalResult = parts[parts.length - 1].trim();
+        } else {
+          finalResult = cleanedContent;
+        }
+      }
+    }
+    
     // If still no steps, create a single step with the whole response
     if (solutionSteps.length === 0) {
+      // Check if the response contains "no equation" or error messages
+      if (response.toLowerCase().includes("no equation") || 
+          response.toLowerCase().includes("image is blank") ||
+          response.toLowerCase().includes("cannot identify")) {
+        return {
+          original: "No equation detected",
+          steps: [],
+          result: "No equation found",
+          error: "No valid equation detected in the image. Please try again with clearer writing."
+        };
+      }
+      
       solutionSteps.push({
         explanation: "Equation processing",
         expression: originalEquation
       });
+    }
+    
+    // If we still haven't found a result but have steps, use the last step's expression
+    if (finalResult === "Could not extract result" && solutionSteps.length > 0) {
+      finalResult = solutionSteps[solutionSteps.length - 1].expression;
     }
     
     return {
@@ -206,7 +269,7 @@ const parseGeminiResponse = (response: string): SolutionResult => {
           expression: response
         }
       ],
-      result: finalResult,
+      result: "Could not extract result",
       graph: false
     };
   }

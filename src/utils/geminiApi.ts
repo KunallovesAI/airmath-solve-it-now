@@ -36,7 +36,7 @@ export const solveMathWithGemini = async (imageBase64: string): Promise<GeminiRe
               role: "user",
               parts: [
                 {
-                  text: "You are a math equation solver specializing in handwritten equations. This image contains a handwritten mathematical equation or expression. Extract the mathematical equation from this image and solve it step by step. Format your response EXACTLY as follows:\n\n**Equation:**\n$ [equation] $\n\n**Steps to Solve:**\n1. **[Step title]:**\n$ [equation] $\n\n2. **[Step title]:**\n$ [equation] $\n\n... and so on.\n\n**Final Answer:**\n$ [result] $\n\nNOTE: Keep equations in LaTeX format within $ symbols. Show ALL intermediate steps. Be very careful to identify numbers, variables, and operators correctly from handwriting. If you can't identify an equation in the image, say 'No equation detected' and do not make something up."
+                  text: "You are a math equation solver specializing in handwritten equations. This image contains a handwritten mathematical equation. Your job is to:\n\n1. Extract the exact mathematical equation from the image, handling all mathematical symbols, fractions, powers, etc.\n2. Solve this equation step by step.\n\nFormat your response EXACTLY as follows:\n\n**Equation:**\n$ [equation] $\n\n**Steps to Solve:**\n1. **[Step title]:**\n$ [equation] $\n\n2. **[Step title]:**\n$ [equation] $\n\n... and so on.\n\n**Final Answer:**\n$ [result] $\n\nIMPORTANT RULES:\n- Use proper LaTeX formatting for all equations inside $ symbols.\n- If you can't see any equation or the image is blank, say 'No equation detected in the image'.\n- Be very attentive to how the equation is written - consider all possible interpretations if unclear.\n- Show ALL intermediate steps in the solution.\n- If you see a simple mathematical expression without an equality, solve it to find its value."
                 },
                 {
                   inline_data: {
@@ -79,7 +79,7 @@ export const solveMathWithGemini = async (imageBase64: string): Promise<GeminiRe
     }
 
     const extractedText = content.parts[0].text || '';
-    console.log('Extracted text:', extractedText);
+    console.log('Extracted text from Gemini:', extractedText);
     
     // Return the complete text from Gemini for processing
     return { text: extractedText };
