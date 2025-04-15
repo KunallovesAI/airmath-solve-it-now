@@ -1,10 +1,11 @@
+
 /**
- * Utility functions for interacting with Google's Gemini API
+ * Utility functions for interacting with API for equation solving
  */
 
 import { toast } from "sonner";
 
-// Gemini API key
+// API key
 const GEMINI_API_KEY = "AIzaSyBenDJlvFLFvmcrRgqjUA-DsYRGIOWSjM0";
 
 interface GeminiResponse {
@@ -13,7 +14,7 @@ interface GeminiResponse {
 }
 
 /**
- * Send an image to Gemini API for math equation recognition and solving
+ * Send an image to API for math equation recognition and solving
  */
 export const solveMathWithGemini = async (imageBase64: string): Promise<GeminiResponse> => {
   try {
@@ -90,7 +91,7 @@ export const solveMathWithGemini = async (imageBase64: string): Promise<GeminiRe
 };
 
 /**
- * Send a text-based equation to Gemini API for solving
+ * Send a text-based equation to API for solving
  */
 export const solveTextEquationWithGemini = async (equation: string): Promise<GeminiResponse> => {
   try {
@@ -158,7 +159,7 @@ export const solveTextEquationWithGemini = async (equation: string): Promise<Gem
 };
 
 /**
- * Parse Gemini API response to extract the key information
+ * Parse API response to extract the key information
  */
 export const parseGeminiResponse = (responseText: string): string => {
   // For now, we'll return the entire text for processing in the results page

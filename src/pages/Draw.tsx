@@ -145,7 +145,7 @@ const Draw = () => {
     if (!canvasRef.current) return;
     
     setIsProcessing(true);
-    toast.info("Analyzing your handwriting with Gemini AI...");
+    toast.info("Analyzing your handwriting...");
     
     try {
       // Process the image to improve contrast
@@ -158,9 +158,9 @@ const Draw = () => {
       const imageData = canvasRef.current.toDataURL('image/jpeg', 1.0);
       setPreviewImage(imageData);
       
-      console.log("Sending drawing to Gemini API...");
+      console.log("Sending drawing for recognition...");
       
-      // Send to Gemini API with enhanced prompt
+      // Send to API
       const result = await solveMathWithGemini(imageData);
       
       if (result.error || !result.text) {
@@ -169,7 +169,7 @@ const Draw = () => {
         return;
       }
       
-      // Check if Gemini detected any equation
+      // Check if any equation was detected
       if (result.text.includes("No equation detected") || 
           result.text.includes("image is blank") ||
           result.text.includes("no equation")) {
@@ -178,9 +178,9 @@ const Draw = () => {
         return;
       }
       
-      toast.success("Equation recognized with Gemini AI!");
+      toast.success("Equation successfully recognized!");
       
-      // Navigate to the results page with the raw Gemini response
+      // Navigate to the results page with the raw response
       const timestamp = new Date().getTime();
       navigate(`/results?equation=${encodeURIComponent(result.text)}&t=${timestamp}`);
     } catch (error) {
@@ -292,12 +292,13 @@ const Draw = () => {
             onTouchEnd={stopDrawing}
           />
           
-          <div className="p-4 border-t flex justify-between items-center">
-            <div className="flex gap-2">
+          <div className="p-4 border-t flex flex-col sm:flex-row justify-between gap-4">
+            <div className="flex gap-2 w-full sm:w-auto justify-start">
               <Button
                 variant="outline"
                 onClick={clearCanvas}
                 disabled={isProcessing}
+                className="flex-1 sm:flex-initial"
               >
                 <Trash2 className="h-4 w-4 mr-2" />
                 Clear
@@ -307,6 +308,7 @@ const Draw = () => {
                 variant="outline"
                 onClick={previewDrawing}
                 disabled={!hasDrawn || isProcessing}
+                className="flex-1 sm:flex-initial"
               >
                 <Eye className="h-4 w-4 mr-2" />
                 Preview
@@ -317,6 +319,7 @@ const Draw = () => {
               variant="default"
               onClick={recognizeEquation}
               disabled={!hasDrawn || isProcessing}
+              className="w-full sm:w-auto"
             >
               {isProcessing ? (
                 <div className="flex items-center">
@@ -355,7 +358,7 @@ const Draw = () => {
             <Button onClick={() => {
               setShowPreview(false);
               recognizeEquation();
-            }}>Send to Gemini</Button>
+            }}>Process Image</Button>
           </div>
         </DialogContent>
       </Dialog>
