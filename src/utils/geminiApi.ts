@@ -36,7 +36,7 @@ export const solveMathWithGemini = async (imageBase64: string): Promise<GeminiRe
               role: "user",
               parts: [
                 {
-                  text: "You are a math equation solver specializing in handwritten equations. Extract the mathematical equation from this image and solve it step by step. Format your response EXACTLY as follows:\n\n**Equation:**\n$ [equation] $\n\n**Steps to Solve:**\n1. **[Step title]:**\n$ [equation] $\n\n2. **[Step title]:**\n$ [equation] $\n\n... and so on.\n\n**Final Answer:**\n$ [result] $\n\nNOTE: Keep equations in LaTeX format within $ symbols. Show ALL intermediate steps. Be very careful to identify numbers, variables, and operators correctly from handwriting."
+                  text: "You are a math equation solver specializing in handwritten equations. This image contains a handwritten mathematical equation or expression. Extract the mathematical equation from this image and solve it step by step. Format your response EXACTLY as follows:\n\n**Equation:**\n$ [equation] $\n\n**Steps to Solve:**\n1. **[Step title]:**\n$ [equation] $\n\n2. **[Step title]:**\n$ [equation] $\n\n... and so on.\n\n**Final Answer:**\n$ [result] $\n\nNOTE: Keep equations in LaTeX format within $ symbols. Show ALL intermediate steps. Be very careful to identify numbers, variables, and operators correctly from handwriting. If you can't identify an equation in the image, say 'No equation detected' and do not make something up."
                 },
                 {
                   inline_data: {
@@ -50,6 +50,7 @@ export const solveMathWithGemini = async (imageBase64: string): Promise<GeminiRe
           generation_config: {
             temperature: 0.1,
             top_p: 0.95,
+            top_k: 40,
             max_output_tokens: 2048,
           }
         }),
@@ -117,6 +118,7 @@ export const solveTextEquationWithGemini = async (equation: string): Promise<Gem
           generation_config: {
             temperature: 0.1,
             top_p: 0.95,
+            top_k: 40,
             max_output_tokens: 2048,
           }
         }),

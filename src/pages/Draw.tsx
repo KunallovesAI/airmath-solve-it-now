@@ -4,9 +4,15 @@ import { useNavigate } from 'react-router-dom';
 import Layout from '@/components/Layout';
 import { Card } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
-import { ArrowLeft, Eraser, Send, Trash2 } from 'lucide-react';
+import { ArrowLeft, Send, Trash2 } from 'lucide-react';
 import { toast } from "sonner";
 import { solveMathWithGemini } from '@/utils/geminiApi';
+import { 
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+} from "@/components/ui/dialog";
 
 const Draw = () => {
   const navigate = useNavigate();
@@ -15,12 +21,14 @@ const Draw = () => {
   const [canvasContext, setCanvasContext] = useState<CanvasRenderingContext2D | null>(null);
   const [hasDrawn, setHasDrawn] = useState(false);
   const [isProcessing, setIsProcessing] = useState(false);
+  const [showPreview, setShowPreview] = useState(false);
+  const [previewImage, setPreviewImage] = useState<string | null>(null);
   
   useEffect(() => {
     const canvas = canvasRef.current;
     if (!canvas) return;
     
-    const ctx = canvas.getContext('2d');
+    const ctx = canvas.getContext('2d', { willReadFrequently: true });
     if (!ctx) return;
     
     setCanvasContext(ctx);
@@ -31,13 +39,15 @@ const Draw = () => {
       canvas.width = rect.width;
       canvas.height = rect.height;
       
-      // Set up canvas style - thicker lines for better handwriting recognition
-      ctx.lineWidth = 5; // Increased from 3 to 5 for better visibility
+      // Set white background for better visibility
+      ctx.fillStyle = '#ffffff';
+      ctx.fillRect(0, 0, canvas.width, canvas.height);
+      
+      // Set up canvas style for better handwriting recognition
+      ctx.lineWidth = 8; // Thicker lines for better visibility
       ctx.lineCap = 'round';
       ctx.lineJoin = 'round';
-      ctx.strokeStyle = getComputedStyle(document.documentElement)
-        .getPropertyValue('--foreground')
-        .trim();
+      ctx.strokeStyle = '#000000'; // Pure black for maximum contrast
     };
     
     resizeCanvas();
@@ -78,6 +88,7 @@ const Draw = () => {
     
     if ('touches' in e) {
       // Touch event
+      e.preventDefault(); // Prevent scrolling when drawing
       const rect = canvas.getBoundingClientRect();
       const touch = e.touches[0];
       return {
@@ -96,12 +107,15 @@ const Draw = () => {
   const clearCanvas = () => {
     if (!canvasContext || !canvasRef.current) return;
     
-    canvasContext.clearRect(
+    // Clear with white background instead of transparent
+    canvasContext.fillStyle = '#ffffff';
+    canvasContext.fillRect(
       0, 
       0, 
       canvasRef.current.width, 
       canvasRef.current.height
     );
+    
     setHasDrawn(false);
   };
   
@@ -117,10 +131,14 @@ const Draw = () => {
     toast.info("Analyzing your handwriting with Gemini AI...");
     
     try {
-      // Convert canvas to base64 image data with higher quality for better recognition
-      const imageData = canvasRef.current.toDataURL('image/jpeg', 1.0);
+      // Ensure canvas has a white background
+      ensureWhiteBackground();
       
-      // Send to Gemini API
+      // Convert canvas to base64 image data with maximum quality
+      const imageData = canvasRef.current.toDataURL('image/jpeg', 1.0);
+      setPreviewImage(imageData);
+      
+      // Send to Gemini API with enhanced prompt
       const result = await solveMathWithGemini(imageData);
       
       if (result.error || !result.text) {
@@ -131,13 +149,55 @@ const Draw = () => {
       
       toast.success("Equation recognized with Gemini AI!");
       
-      // Navigate to the results page with the raw Gemini response and a timestamp to prevent caching
+      // Navigate to the results page with the raw Gemini response
       const timestamp = new Date().getTime();
       navigate(`/results?equation=${encodeURIComponent(result.text)}&t=${timestamp}`);
     } catch (error) {
       console.error("Error recognizing equation:", error);
       toast.error("Failed to process equation");
       setIsProcessing(false);
+    }
+  };
+  
+  // Ensure the canvas has a white background before image capture
+  const ensureWhiteBackground = () => {
+    if (!canvasRef.current || !canvasContext) return;
+    
+    const canvas = canvasRef.current;
+    const ctx = canvasContext;
+    
+    // Get current image data
+    const imageData = ctx.getImageData(0, 0, canvas.width, canvas.height);
+    const data = imageData.data;
+    
+    // Check if the canvas is transparent or has a non-white background
+    let hasTransparency = false;
+    for (let i = 0; i < data.length; i += 4) {
+      // If alpha channel is not 255 (fully opaque)
+      if (data[i + 3] < 255) {
+        hasTransparency = true;
+        break;
+      }
+    }
+    
+    if (hasTransparency) {
+      // Create a new canvas with white background
+      const tempCanvas = document.createElement('canvas');
+      tempCanvas.width = canvas.width;
+      tempCanvas.height = canvas.height;
+      const tempCtx = tempCanvas.getContext('2d');
+      
+      if (!tempCtx) return;
+      
+      // Fill with white
+      tempCtx.fillStyle = 'white';
+      tempCtx.fillRect(0, 0, tempCanvas.width, tempCanvas.height);
+      
+      // Draw original content on top
+      tempCtx.drawImage(canvas, 0, 0);
+      
+      // Copy back to original canvas
+      ctx.drawImage(tempCanvas, 0, 0);
     }
   };
   
@@ -154,8 +214,12 @@ const Draw = () => {
         <Card className="overflow-hidden p-0">
           <canvas
             ref={canvasRef}
-            className="w-full bg-card touch-none"
-            style={{ height: '300px', backgroundColor: '#f8f9fa' }} // Lighter background for better contrast
+            className="w-full touch-none"
+            style={{ 
+              height: '300px', 
+              backgroundColor: '#ffffff',
+              border: '1px solid #e2e8f0'
+            }}
             onMouseDown={startDrawing}
             onMouseMove={draw}
             onMouseUp={stopDrawing}
@@ -197,10 +261,22 @@ const Draw = () => {
         
         <div className="text-center text-muted-foreground text-sm">
           <p>Draw your equation clearly using your finger or stylus</p>
-          <p>Try to make your handwriting as clear as possible</p>
-          <p>Simple equations like x+5=10 or y=2x+3 work best</p>
+          <p>Use thick, dark strokes for better recognition</p>
+          <p>Write larger symbols with space between them for best results</p>
         </div>
       </div>
+      
+      {/* Preview Dialog */}
+      <Dialog open={showPreview} onOpenChange={setShowPreview}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>Image Sent to Gemini</DialogTitle>
+          </DialogHeader>
+          <div className="flex justify-center">
+            {previewImage && <img src={previewImage} alt="Captured drawing" className="max-w-full border" />}
+          </div>
+        </DialogContent>
+      </Dialog>
     </Layout>
   );
 };
