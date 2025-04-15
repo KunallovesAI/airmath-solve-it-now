@@ -31,8 +31,8 @@ const Draw = () => {
       canvas.width = rect.width;
       canvas.height = rect.height;
       
-      // Set up canvas style
-      ctx.lineWidth = 3;
+      // Set up canvas style - thicker lines for better handwriting recognition
+      ctx.lineWidth = 5; // Increased from 3 to 5 for better visibility
       ctx.lineCap = 'round';
       ctx.lineJoin = 'round';
       ctx.strokeStyle = getComputedStyle(document.documentElement)
@@ -117,8 +117,8 @@ const Draw = () => {
     toast.info("Analyzing your handwriting with Gemini AI...");
     
     try {
-      // Convert canvas to base64 image data
-      const imageData = canvasRef.current.toDataURL('image/jpeg');
+      // Convert canvas to base64 image data with higher quality for better recognition
+      const imageData = canvasRef.current.toDataURL('image/jpeg', 1.0);
       
       // Send to Gemini API
       const result = await solveMathWithGemini(imageData);
@@ -131,7 +131,7 @@ const Draw = () => {
       
       toast.success("Equation recognized with Gemini AI!");
       
-      // Navigate to the results page with a timestamp to prevent caching
+      // Navigate to the results page with the raw Gemini response and a timestamp to prevent caching
       const timestamp = new Date().getTime();
       navigate(`/results?equation=${encodeURIComponent(result.text)}&t=${timestamp}`);
     } catch (error) {
@@ -155,7 +155,7 @@ const Draw = () => {
           <canvas
             ref={canvasRef}
             className="w-full bg-card touch-none"
-            style={{ height: '300px' }}
+            style={{ height: '300px', backgroundColor: '#f8f9fa' }} // Lighter background for better contrast
             onMouseDown={startDrawing}
             onMouseMove={draw}
             onMouseUp={stopDrawing}
@@ -197,7 +197,8 @@ const Draw = () => {
         
         <div className="text-center text-muted-foreground text-sm">
           <p>Draw your equation clearly using your finger or stylus</p>
-          <p>Powered by Google Gemini AI for accurate recognition</p>
+          <p>Try to make your handwriting as clear as possible</p>
+          <p>Simple equations like x+5=10 or y=2x+3 work best</p>
         </div>
       </div>
     </Layout>

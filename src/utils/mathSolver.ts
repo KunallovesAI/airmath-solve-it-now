@@ -66,46 +66,123 @@ const parseGeminiResponse = (response: string): SolutionResult => {
   
   try {
     // Extract the original equation
-    const equationMatch = response.match(/\*\*Equation:\*\*\s*\$(.*?)\$/);
+    let equationMatch = response.match(/\*\*Equation:\*\*\s*\$(.*?)\$/);
+    // Try alternate formats if first pattern doesn't match
+    if (!equationMatch || !equationMatch[1]) {
+      equationMatch = response.match(/Equation:\s*\$(.*?)\$/);
+    }
+    if (!equationMatch || !equationMatch[1]) {
+      equationMatch = response.match(/\*Equation:\*\s*\$(.*?)\$/);
+    }
+    if (!equationMatch || !equationMatch[1]) {
+      // Try to find any LaTeX expression as a fallback
+      equationMatch = response.match(/\$(.*?)\$/);
+    }
+    
     if (equationMatch && equationMatch[1]) {
       originalEquation = equationMatch[1].trim();
     }
     
     // Extract the final answer
-    const resultMatch = response.match(/\*\*Final Answer:\*\*\s*\$(.*?)\$/);
+    let resultMatch = response.match(/\*\*Final Answer:\*\*\s*\$(.*?)\$/);
+    // Try alternate formats if first pattern doesn't match
+    if (!resultMatch || !resultMatch[1]) {
+      resultMatch = response.match(/Final Answer:\s*\$(.*?)\$/);
+    }
+    if (!resultMatch || !resultMatch[1]) {
+      resultMatch = response.match(/\*Final Answer:\*\s*\$(.*?)\$/);
+    }
+    if (!resultMatch || !resultMatch[1]) {
+      // Try to find the last LaTeX expression as a fallback for result
+      const allLatexMatches = response.match(/\$(.*?)\$/g);
+      if (allLatexMatches && allLatexMatches.length > 0) {
+        const lastLatex = allLatexMatches[allLatexMatches.length - 1];
+        resultMatch = [lastLatex, lastLatex.replace(/^\$|\$$/g, '')];
+      }
+    }
+    
     if (resultMatch && resultMatch[1]) {
       finalResult = resultMatch[1].trim();
     }
     
-    // Extract the steps - look for numbered steps
-    const stepsSection = response.match(/\*\*Steps to Solve:\*\*([\s\S]*?)(?:\*\*Final Answer|$)/);
+    // Extract the steps - look for different patterns
+    const stepsPatterns = [
+      /\*\*Steps to Solve:\*\*([\s\S]*?)(?:\*\*Final Answer|$)/,
+      /Steps to Solve:([\s\S]*?)(?:Final Answer|$)/,
+      /\*Steps to Solve:\*([\s\S]*?)(?:\*Final Answer|$)/
+    ];
     
-    if (stepsSection && stepsSection[1]) {
-      const stepText = stepsSection[1];
+    let stepsSection = null;
+    for (const pattern of stepsPatterns) {
+      const match = response.match(pattern);
+      if (match && match[1]) {
+        stepsSection = match[1];
+        break;
+      }
+    }
+    
+    if (stepsSection) {
+      const stepText = stepsSection;
       
-      // Match all numbered steps
-      const stepRegex = /(\d+\.\s*\*\*[^*]+\*\*:?)([\s\S]*?)(?=\d+\.\s*\*\*|$)/g;
-      let match;
+      // Match all numbered steps with different patterns
+      const stepPatterns = [
+        /(\d+\.\s*\*\*[^*]+\*\*:?)([\s\S]*?)(?=\d+\.\s*\*\*|$)/g,
+        /(\d+\.\s*[^:]+:)([\s\S]*?)(?=\d+\.\s*|$)/g,
+        /(\*\*Step \d+\*\*:)([\s\S]*?)(?=\*\*Step \d+\*\*:|$)/g,
+        /(\*Step \d+\*:)([\s\S]*?)(?=\*Step \d+\*:|$)/g,
+        /(Step \d+:)([\s\S]*?)(?=Step \d+:|$)/g
+      ];
       
-      while ((match = stepRegex.exec(stepText)) !== null) {
-        const stepTitle = match[1].replace(/\*\*/g, '').trim();
-        const stepContent = match[2].trim();
+      for (const pattern of stepPatterns) {
+        let match;
+        let foundSteps = false;
         
-        // Extract LaTeX expressions from the step content
-        const latexMatches = stepContent.match(/\$(.*?)\$/g);
-        const expressions = latexMatches ? latexMatches.map(m => m.replace(/^\$|\$$/g, '').trim()) : [];
+        while ((match = pattern.exec(stepText)) !== null) {
+          foundSteps = true;
+          const stepTitle = match[1].replace(/\*\*/g, '').trim();
+          const stepContent = match[2].trim();
+          
+          // Extract LaTeX expressions from the step content
+          const latexMatches = stepContent.match(/\$(.*?)\$/g);
+          const expressions = latexMatches 
+            ? latexMatches.map(m => m.replace(/^\$|\$$/g, '').trim())
+            : [];
+          
+          // Add each expression as a step
+          if (expressions.length > 0) {
+            solutionSteps.push({
+              explanation: stepTitle,
+              expression: expressions[expressions.length - 1] // Use the last expression as the result of this step
+            });
+          } else {
+            // If no LaTeX found, use the step content as plain text
+            solutionSteps.push({
+              explanation: stepTitle,
+              expression: stepContent.replace(/\*\*/g, '')
+            });
+          }
+        }
         
-        // Add each expression as a step
-        if (expressions.length > 0) {
+        if (foundSteps) break; // If we found steps with this pattern, don't try others
+      }
+    }
+    
+    // If no steps were extracted, try to create steps from all LaTeX expressions
+    if (solutionSteps.length === 0) {
+      const allLatexMatches = response.match(/\$(.*?)\$/g);
+      if (allLatexMatches && allLatexMatches.length > 1) {
+        // Skip the first match (usually the equation) and the last (usually the result)
+        for (let i = 1; i < allLatexMatches.length - 1; i++) {
+          const latex = allLatexMatches[i].replace(/^\$|\$$/g, '').trim();
           solutionSteps.push({
-            explanation: stepTitle,
-            expression: expressions[expressions.length - 1] // Use the last expression as the result of this step
+            explanation: `Step ${i}`,
+            expression: latex
           });
         }
       }
     }
     
-    // If no steps were extracted, create a single step with the whole response
+    // If still no steps, create a single step with the whole response
     if (solutionSteps.length === 0) {
       solutionSteps.push({
         explanation: "Equation processing",

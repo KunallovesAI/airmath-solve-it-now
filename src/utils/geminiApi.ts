@@ -36,7 +36,7 @@ export const solveMathWithGemini = async (imageBase64: string): Promise<GeminiRe
               role: "user",
               parts: [
                 {
-                  text: "You are a math equation solver. Extract the mathematical equation from this image and solve it. Format your response as follows:\n\n**Equation:**\n$ [equation] $\n\n**Steps to Solve:**\n1. **[Step title]:**\n$ [equation] $\n\n2. **[Step title]:**\n$ [equation] $\n\n... and so on.\n\n**Final Answer:**\n$ [result] $\n\nKeep equations in LaTeX format within $ symbols. Use only LaTeX format for equations. Show all intermediate steps clearly."
+                  text: "You are a math equation solver specializing in handwritten equations. Extract the mathematical equation from this image and solve it step by step. Format your response EXACTLY as follows:\n\n**Equation:**\n$ [equation] $\n\n**Steps to Solve:**\n1. **[Step title]:**\n$ [equation] $\n\n2. **[Step title]:**\n$ [equation] $\n\n... and so on.\n\n**Final Answer:**\n$ [result] $\n\nNOTE: Keep equations in LaTeX format within $ symbols. Show ALL intermediate steps. Be very careful to identify numbers, variables, and operators correctly from handwriting."
                 },
                 {
                   inline_data: {
@@ -48,8 +48,8 @@ export const solveMathWithGemini = async (imageBase64: string): Promise<GeminiRe
             }
           ],
           generation_config: {
-            temperature: 0.2,
-            top_p: 0.8,
+            temperature: 0.1,
+            top_p: 0.95,
             max_output_tokens: 2048,
           }
         }),
@@ -109,14 +109,14 @@ export const solveTextEquationWithGemini = async (equation: string): Promise<Gem
               role: "user",
               parts: [
                 {
-                  text: `You are a math equation solver. Solve this equation: ${equation}\n\nFormat your response as follows:\n\n**Equation:**\n$ [equation] $\n\n**Steps to Solve:**\n1. **[Step title]:**\n$ [equation] $\n\n2. **[Step title]:**\n$ [equation] $\n\n... and so on.\n\n**Final Answer:**\n$ [result] $\n\nKeep equations in LaTeX format within $ symbols. Use only LaTeX format for equations. Show all intermediate steps clearly.`
+                  text: `You are a math equation solver. Solve this equation: ${equation}\n\nFormat your response EXACTLY as follows:\n\n**Equation:**\n$ [equation] $\n\n**Steps to Solve:**\n1. **[Step title]:**\n$ [equation] $\n\n2. **[Step title]:**\n$ [equation] $\n\n... and so on.\n\n**Final Answer:**\n$ [result] $\n\nNOTE: Keep equations in LaTeX format within $ symbols. Show ALL intermediate steps clearly.`
                 }
               ]
             }
           ],
           generation_config: {
-            temperature: 0.2,
-            top_p: 0.8,
+            temperature: 0.1,
+            top_p: 0.95,
             max_output_tokens: 2048,
           }
         }),
