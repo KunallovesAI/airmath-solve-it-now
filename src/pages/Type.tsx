@@ -1,4 +1,3 @@
-
 import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import Layout from '@/components/Layout';
@@ -16,9 +15,7 @@ const Type = () => {
   const [isProcessing, setIsProcessing] = useState(false);
   
   const handleInput = (value: string) => {
-    // Direct input without adding extra $ symbols
     setEquation((prev) => {
-      // Special handling for commands that need brackets
       if (value === "\\sqrt") {
         return prev + "\\sqrt{}";
       }
@@ -44,10 +41,9 @@ const Type = () => {
     }
     
     setIsProcessing(true);
-    toast.info("Processing equation with Gemini AI...");
+    toast.info("Processing equation...");
     
     try {
-      // Send to Gemini API
       const result = await solveTextEquationWithGemini(equation);
       
       if (result.error || !result.text) {
@@ -56,9 +52,8 @@ const Type = () => {
         return;
       }
       
-      toast.success("Equation processed with Gemini AI!");
+      toast.success("Solution ready!");
       
-      // Navigate to the results page with a timestamp to prevent caching
       const timestamp = new Date().getTime();
       navigate(`/results?equation=${encodeURIComponent(result.text)}&t=${timestamp}`);
     } catch (error) {

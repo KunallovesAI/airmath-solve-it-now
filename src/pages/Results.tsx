@@ -1,4 +1,3 @@
-
 import { useEffect, useState } from 'react';
 import { useNavigate, useSearchParams } from 'react-router-dom';
 import Layout from '@/components/Layout';
@@ -115,27 +114,27 @@ const Results = () => {
   
   return (
     <Layout>
-      <div className="space-y-6">
-        <div className="flex items-center gap-2">
+      <div className="space-y-4 max-w-full overflow-x-hidden pb-6">
+        <div className="flex items-center gap-2 p-2">
           <Button variant="ghost" size="icon" onClick={() => navigate('/')}>
             <ArrowLeft className="h-5 w-5" />
           </Button>
-          <h1 className="text-2xl font-bold">Solution</h1>
+          <h1 className="text-xl md:text-2xl font-bold">Solution</h1>
         </div>
 
-        <Card>
+        <Card className="mx-2">
           <CardHeader>
             <CardTitle>Original Equation</CardTitle>
           </CardHeader>
           <CardContent>
-            <div className="flex justify-between items-center">
-              <div className="overflow-x-auto max-w-full">
-                <LatexRenderer latex={solution.original || equation || ''} />
+            <div className="flex justify-between items-center overflow-x-auto">
+              <div className="overflow-x-auto max-w-[calc(100%-40px)]">
+                <LatexRenderer latex={solution?.original || equation || ''} />
               </div>
               <Button
                 variant="ghost"
                 size="icon"
-                onClick={() => copyToClipboard(solution.original || equation || '')}
+                onClick={() => copyToClipboard(solution?.original || equation || '')}
               >
                 <Copy className="h-4 w-4" />
               </Button>
@@ -143,8 +142,8 @@ const Results = () => {
           </CardContent>
         </Card>
 
-        {solution.error ? (
-          <Card>
+        {solution?.error ? (
+          <Card className="mx-2">
             <CardHeader>
               <CardTitle className="text-destructive">Error</CardTitle>
             </CardHeader>
@@ -154,18 +153,20 @@ const Results = () => {
           </Card>
         ) : (
           <>
-            <Card>
+            <Card className="mx-2">
               <CardHeader>
                 <CardTitle>Step-by-Step Solution</CardTitle>
               </CardHeader>
               <CardContent className="space-y-4">
-                {solution.steps && solution.steps.length > 0 ? (
+                {solution?.steps && solution.steps.length > 0 ? (
                   solution.steps.map((step, index) => (
                     <div key={index} className="space-y-2 pb-4 border-b last:border-0">
-                      <div className="text-muted-foreground text-sm">
+                      <div className="text-muted-foreground text-sm break-words">
                         {step.explanation}
                       </div>
-                      <LatexRenderer latex={step.expression} />
+                      <div className="overflow-x-auto">
+                        <LatexRenderer latex={step.expression} />
+                      </div>
                     </div>
                   ))
                 ) : (
@@ -176,19 +177,19 @@ const Results = () => {
               </CardContent>
             </Card>
 
-            <Card>
+            <Card className="mx-2">
               <CardHeader>
                 <CardTitle>Result</CardTitle>
               </CardHeader>
               <CardContent>
                 <div className="flex justify-between items-center">
-                  <div className="overflow-x-auto max-w-full">
-                    <LatexRenderer latex={solution.result} />
+                  <div className="overflow-x-auto max-w-[calc(100%-40px)]">
+                    <LatexRenderer latex={solution?.result || ''} />
                   </div>
                   <Button
                     variant="ghost"
                     size="icon"
-                    onClick={() => copyToClipboard(solution.result)}
+                    onClick={() => copyToClipboard(solution?.result || '')}
                   >
                     <Copy className="h-4 w-4" />
                   </Button>
