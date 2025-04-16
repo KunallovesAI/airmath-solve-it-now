@@ -145,7 +145,7 @@ const Draw = () => {
     if (!canvasRef.current) return;
     
     setIsProcessing(true);
-    toast.info("Analyzing your handwriting with Gemini AI...");
+    toast.info("Analyzing your handwriting...");
     
     try {
       // Process the image to improve contrast
@@ -158,7 +158,7 @@ const Draw = () => {
       const imageData = canvasRef.current.toDataURL('image/jpeg', 1.0);
       setPreviewImage(imageData);
       
-      console.log("Sending drawing to Gemini API...");
+      console.log("Sending drawing for processing...");
       
       // Send to Gemini API with enhanced prompt
       const result = await solveMathWithGemini(imageData);
@@ -178,7 +178,7 @@ const Draw = () => {
         return;
       }
       
-      toast.success("Equation recognized with Gemini AI!");
+      toast.success("Equation recognized!");
       
       // Navigate to the results page with the raw Gemini response
       const timestamp = new Date().getTime();
@@ -292,12 +292,13 @@ const Draw = () => {
             onTouchEnd={stopDrawing}
           />
           
-          <div className="p-4 border-t flex justify-between items-center">
-            <div className="flex gap-2">
+          <div className="p-4 border-t flex flex-wrap justify-between items-center gap-2">
+            <div className="flex flex-wrap gap-2">
               <Button
                 variant="outline"
                 onClick={clearCanvas}
                 disabled={isProcessing}
+                className="sm:w-auto w-full"
               >
                 <Trash2 className="h-4 w-4 mr-2" />
                 Clear
@@ -307,6 +308,7 @@ const Draw = () => {
                 variant="outline"
                 onClick={previewDrawing}
                 disabled={!hasDrawn || isProcessing}
+                className="sm:w-auto w-full"
               >
                 <Eye className="h-4 w-4 mr-2" />
                 Preview
@@ -317,6 +319,7 @@ const Draw = () => {
               variant="default"
               onClick={recognizeEquation}
               disabled={!hasDrawn || isProcessing}
+              className="sm:w-auto w-full"
             >
               {isProcessing ? (
                 <div className="flex items-center">
@@ -355,7 +358,7 @@ const Draw = () => {
             <Button onClick={() => {
               setShowPreview(false);
               recognizeEquation();
-            }}>Send to Gemini</Button>
+            }}>Process Equation</Button>
           </div>
         </DialogContent>
       </Dialog>
