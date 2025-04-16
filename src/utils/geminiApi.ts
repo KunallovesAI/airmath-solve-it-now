@@ -81,10 +81,11 @@ export const solveMathWithGemini = async (imageBase64: string): Promise<GeminiRe
     console.log('Extracted text from API:', extractedText);
     
     // Return the complete text from API for processing
+    toast.success('Equation extracted');
     return { text: extractedText };
   } catch (error) {
     console.error('Error extracting text from image:', error);
-    toast.error('Failed to analyze image');
+    toast.error('Failed to process image');
     return { text: '', error: String(error) };
   }
 };
@@ -149,6 +150,7 @@ export const solveTextEquationWithGemini = async (equation: string): Promise<Gem
     console.log('Extracted text from API:', extractedText);
     
     // Return the complete text from API
+    toast.success('Equation processed');
     return { text: extractedText };
   } catch (error) {
     console.error('Error solving equation:', error);

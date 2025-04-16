@@ -1,3 +1,4 @@
+
 import { useState, useRef } from 'react';
 import { useNavigate } from 'react-router-dom';
 import Layout from '@/components/Layout';
@@ -38,19 +39,19 @@ const UploadPage = () => {
     if (!selectedImage) return;
     
     setIsProcessing(true);
-    toast.info("Processing image with Gemini AI...");
+    toast.info("Processing...");
     
     try {
       // Send to Gemini API
       const result = await solveMathWithGemini(selectedImage);
       
       if (result.error || !result.text) {
-        toast.error(result.error || "Failed to recognize equation from image");
+        toast.error("Failed to extract equation");
         setIsProcessing(false);
         return;
       }
       
-      toast.success("Math expression extracted with Gemini AI!");
+      toast.success("Equation extracted");
       
       // Navigate to the results page with a timestamp to prevent caching
       const timestamp = new Date().getTime();
