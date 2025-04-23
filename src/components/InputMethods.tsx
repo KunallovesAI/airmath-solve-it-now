@@ -1,15 +1,9 @@
 
-import { Camera, PenLine, Upload, Keyboard, Hand } from 'lucide-react';
+import { PenLine, Upload, Keyboard } from 'lucide-react';
 import { Link } from 'react-router-dom';
 
 const InputMethods = () => {
   const methods = [
-    {
-      name: 'Scan',
-      icon: Camera,
-      path: '/scan',
-      description: 'Scan printed equations with camera',
-    },
     {
       name: 'Draw',
       icon: PenLine,
@@ -28,16 +22,10 @@ const InputMethods = () => {
       path: '/type',
       description: 'Type equations with math keyboard',
     },
-    {
-      name: 'Gesture',
-      icon: Hand,
-      path: '/hand-gesture',
-      description: 'Solve using hand gestures',
-    },
   ];
 
   return (
-    <div className="grid grid-cols-2 gap-4 animate-fade-in">
+    <div className="grid grid-cols-1 md:grid-cols-3 gap-4 animate-fade-in">
       {methods.map((method) => (
         <Link
           key={method.name}

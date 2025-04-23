@@ -7,19 +7,17 @@ import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { BrowserRouter, Routes, Route } from "react-router-dom";
 import Index from "./pages/Index";
 import History from "./pages/History";
-import Scan from "./pages/Scan";
 import Draw from "./pages/Draw";
 import Upload from "./pages/Upload";
 import Type from "./pages/Type";
 import Results from "./pages/Results";
 import NotFound from "./pages/NotFound";
-import HandGesture from "./pages/HandGesture";
 
 // Create a new QueryClient instance outside of the component
 const queryClient = new QueryClient();
 
 const App = () => {
-  // We'll use React.useEffect instead of directly using useEffect
+  // We'll use React.useEffect instead of useEffect
   React.useEffect(() => {
     // Check for saved theme
     const savedTheme = localStorage.getItem("theme") || "light";
@@ -36,12 +34,10 @@ const App = () => {
             <Routes>
               <Route path="/" element={<Index />} />
               <Route path="/history" element={<History />} />
-              <Route path="/scan" element={<Scan />} />
               <Route path="/draw" element={<Draw />} />
               <Route path="/upload" element={<Upload />} />
               <Route path="/type" element={<Type />} />
               <Route path="/results" element={<Results />} />
-              <Route path="/hand-gesture" element={<HandGesture />} />
               <Route path="*" element={<NotFound />} />
             </Routes>
           </BrowserRouter>
