@@ -1,13 +1,15 @@
+
 import { useEffect, useState } from 'react';
 import { useNavigate, useSearchParams } from 'react-router-dom';
 import Layout from '@/components/Layout';
 import { Card, CardHeader, CardTitle, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
-import { ArrowLeft, Copy, LineChart } from 'lucide-react';
+import { ArrowLeft, Copy } from 'lucide-react';
 import LatexRenderer from '@/components/LatexRenderer';
 import { solveEquation } from '@/utils/mathSolver';
 import { saveEquation } from '@/utils/historyStorage';
 import { toast } from "sonner";
+import { formatEquationText, formatResultText } from '@/utils/formatUtils';
 
 interface SolutionStep {
   explanation: string;
@@ -28,7 +30,6 @@ const Results = () => {
   const [solution, setSolution] = useState<SolutionResult | null>(null);
   const [isLoading, setIsLoading] = useState(true);
   const [equation, setEquation] = useState<string | null>(null);
-  const [rawResponse, setRawResponse] = useState<string | null>(null);
   
   useEffect(() => {
     const fetchSolution = async () => {
@@ -40,7 +41,6 @@ const Results = () => {
       }
 
       setEquation(equationParam);
-      setRawResponse(equationParam); // Store the raw response
       console.log("Processing equation:", equationParam);
       
       try {
@@ -129,7 +129,10 @@ const Results = () => {
           <CardContent>
             <div className="flex justify-between items-center overflow-x-auto">
               <div className="overflow-x-auto max-w-[calc(100%-40px)]">
-                <LatexRenderer latex={solution?.original || equation || ''} />
+                <LatexRenderer 
+                  latex={formatEquationText(solution?.original || equation || '')} 
+                  displayMode={true}
+                />
               </div>
               <Button
                 variant="ghost"
@@ -165,7 +168,10 @@ const Results = () => {
                         {step.explanation}
                       </div>
                       <div className="overflow-x-auto">
-                        <LatexRenderer latex={step.expression} />
+                        <LatexRenderer 
+                          latex={formatEquationText(step.expression)} 
+                          displayMode={true}
+                        />
                       </div>
                     </div>
                   ))
@@ -184,7 +190,10 @@ const Results = () => {
               <CardContent>
                 <div className="flex justify-between items-center">
                   <div className="overflow-x-auto max-w-[calc(100%-40px)]">
-                    <LatexRenderer latex={solution?.result || ''} />
+                    <LatexRenderer 
+                      latex={formatResultText(solution?.result || '')} 
+                      displayMode={true}
+                    />
                   </div>
                   <Button
                     variant="ghost"

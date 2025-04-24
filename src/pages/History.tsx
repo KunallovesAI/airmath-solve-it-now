@@ -8,7 +8,7 @@ import { Link } from 'react-router-dom';
 import { EquationEntry, getHistory, clearHistory, deleteEquation } from '@/utils/historyStorage';
 import LatexRenderer from '@/components/LatexRenderer';
 import { format } from 'date-fns';
-import { formatEquationText } from '@/utils/formatUtils';
+import { formatEquationText, formatResultText } from '@/utils/formatUtils';
 
 const History = () => {
   const [history, setHistory] = useState<EquationEntry[]>([]);
@@ -61,9 +61,10 @@ const History = () => {
                       <LatexRenderer 
                         latex={formatEquationText(entry.equation)} 
                         className="my-2"
+                        displayMode={true}
                       />
-                      <div className="font-medium">
-                        Result: <LatexRenderer latex={formatEquationText(entry.result)} />
+                      <div className="font-medium mt-4">
+                        Result: <LatexRenderer latex={formatResultText(entry.result)} />
                       </div>
                     </div>
                   </div>
