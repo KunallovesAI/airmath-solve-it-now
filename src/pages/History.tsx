@@ -1,5 +1,5 @@
 
-import { useEffect, useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import Layout from '@/components/Layout';
 import { Button } from '@/components/ui/button';
 import { Trash2, ArrowRight } from 'lucide-react';
@@ -58,6 +58,7 @@ const History = () => {
                         {format(entry.timestamp, 'PPpp')}
                       </div>
                       <div className="py-2">
+                        <div className="text-sm text-muted-foreground mb-1">Equation:</div>
                         <LatexRenderer 
                           latex={entry.equation} 
                           className="my-2"
@@ -65,7 +66,8 @@ const History = () => {
                         />
                       </div>
                       <div className="font-medium mt-4">
-                        Result: <LatexRenderer latex={entry.result} />
+                        <div className="text-sm text-muted-foreground mb-1">Result:</div>
+                        <LatexRenderer latex={entry.result} />
                       </div>
                     </div>
                   </div>
