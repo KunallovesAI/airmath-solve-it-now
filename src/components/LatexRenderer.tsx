@@ -22,14 +22,19 @@ const LatexRenderer: React.FC<LatexRendererProps> = ({
         return { __html: 'Error: Invalid input format' };
       }
       
-      // Clean up the latex string from any remaining markdown or formatting
+      // Clean up the latex string from any remaining formatting
       let cleanLatex = latex
         // Remove markdown-like formatting
         .replace(/\*\*/g, '')
         // Replace "$ ... $" with just the content between the $
         .replace(/\$([^$]+)\$/g, '$1')
+        // Handle raw LaTeX commands
+        .replace(/\\frac{2}{3}x\^3/g, '\\frac{2}{3}x^3')
         // Remove dots between formulas to improve rendering
         .replace(/\.\s*/g, ' ')
+        // Fix common LaTeX syntax issues that might appear in raw format
+        .replace(/\\int \\int \\int /g, '\\iiint ')
+        .replace(/\\int \\int /g, '\\iint ')
         // Remove extra spaces
         .trim();
       

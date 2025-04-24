@@ -58,11 +58,13 @@ const History = () => {
                       <div className="text-sm text-muted-foreground">
                         {format(entry.timestamp, 'PPpp')}
                       </div>
-                      <LatexRenderer 
-                        latex={formatEquationText(entry.equation)} 
-                        className="my-2"
-                        displayMode={true}
-                      />
+                      <div className="py-2">
+                        <LatexRenderer 
+                          latex={formatEquationText(entry.equation)} 
+                          className="my-2"
+                          displayMode={true}
+                        />
+                      </div>
                       <div className="font-medium mt-4">
                         Result: <LatexRenderer latex={formatResultText(entry.result)} />
                       </div>

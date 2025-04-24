@@ -12,14 +12,16 @@ export const formatEquationText = (text: string): string => {
     .replace(/\*\*[^*]+:\*\*/g, '')
     // Remove any remaining asterisks
     .replace(/\*\*/g, '')
-    // Clean up any additional formatting symbols if needed
+    // Clean up LaTeX markers
+    .replace(/\\int \\int \\int /g, '\\iiint ')
+    .replace(/\\int \\int /g, '\\iint ')
+    // Handle raw LaTeX commands that shouldn't be displayed directly
+    .replace(/\\frac/g, '\\frac')
+    .replace(/\\cdot/g, '\\cdot')
     .replace(/\\times/g, '\\times')
-    // Extract just the equation part if there's a lot of explanatory text
-    // Look for common equation patterns
+    // Remove explanatory text
     .replace(/([^\n]+)\.The power rule.+/s, '$1')
-    // Remove "where n is any real number" explanations
     .replace(/where\s*n\s*is\s*any\s*real\s*number.+/s, '')
-    // Remove "and C is the constant of integration" explanations
     .replace(/and\s*C\s*is\s*the\s*constant\s*of\s*integration.+/s, '')
     // Simplify the equation display by removing excessive text
     .replace(/1\.\s*|2\.\s*/g, '')
