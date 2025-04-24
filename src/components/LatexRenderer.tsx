@@ -29,7 +29,7 @@ const LatexRenderer: React.FC<LatexRendererProps> = ({
         // Replace "$ ... $" with just the content between the $
         .replace(/\$([^$]+)\$/g, '$1')
         // Handle raw LaTeX commands - fixed the regex issue here
-        .replace(/\\frac\{2\}\/\{3\}x\^3/g, '\\frac{2}{3}x^3')
+        .replace(/\\frac\{(\d+)\}\/\{(\d+)\}x\^(\d+)/g, '\\frac{$1}{$2}x^$3')
         // Remove dots between formulas to improve rendering
         .replace(/\.\s*/g, ' ')
         // Fix common LaTeX syntax issues that might appear in raw format

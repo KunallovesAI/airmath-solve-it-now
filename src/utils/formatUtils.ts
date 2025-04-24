@@ -6,26 +6,12 @@
 export const formatEquationText = (text: string): string => {
   if (!text) return '';
   
-  // Replace markdown-style formatting
+  // For history display, we want minimal processing to preserve original format
   let formattedText = text
-    // Remove section headers like "**Equation:**"
+    // Remove markdown-style formatting
     .replace(/\*\*[^*]+:\*\*/g, '')
-    // Remove any remaining asterisks
     .replace(/\*\*/g, '')
-    // Clean up LaTeX markers
-    .replace(/\\int \\int \\int /g, '\\iiint ')
-    .replace(/\\int \\int /g, '\\iint ')
-    // Handle raw LaTeX commands that shouldn't be displayed directly
-    .replace(/\\frac/g, '\\frac')
-    .replace(/\\cdot/g, '\\cdot')
-    .replace(/\\times/g, '\\times')
-    // Remove explanatory text
-    .replace(/([^\n]+)\.The power rule.+/s, '$1')
-    .replace(/where\s*n\s*is\s*any\s*real\s*number.+/s, '')
-    .replace(/and\s*C\s*is\s*the\s*constant\s*of\s*integration.+/s, '')
-    // Simplify the equation display by removing excessive text
-    .replace(/1\.\s*|2\.\s*/g, '')
-    // Trim extra whitespace
+    // Clean up raw LaTeX markers but preserve original structure
     .trim();
   
   return formattedText;
