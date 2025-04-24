@@ -22,16 +22,31 @@ const LatexRenderer: React.FC<LatexRendererProps> = ({
         return { __html: 'Error: Invalid input format' };
       }
       
-      // Don't add extra $ symbols - use the raw latex input
+      // Clean up the latex string from any remaining markdown or formatting
+      let cleanLatex = latex
+        // Remove markdown-like formatting
+        .replace(/\*\*/g, '')
+        // Replace "$ ... $" with just the content between the $
+        .replace(/\$([^$]+)\$/g, '$1')
+        // Remove extra spaces
+        .trim();
+      
+      // Don't try to render empty strings
+      if (!cleanLatex) {
+        return { __html: '' };
+      }
+
       return {
-        __html: Katex.renderToString(latex, {
+        __html: Katex.renderToString(cleanLatex, {
           throwOnError: false,
-          displayMode: displayMode
+          displayMode: displayMode,
+          output: 'html'
         })
       };
     } catch (error) {
-      console.error('Error rendering LaTeX:', error);
-      return { __html: `Error rendering: ${latex}` };
+      console.error('Error rendering LaTeX:', error, 'Input was:', latex);
+      // Display the raw text if rendering fails
+      return { __html: `${latex}` };
     }
   };
 
